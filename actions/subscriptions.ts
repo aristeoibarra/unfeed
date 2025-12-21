@@ -14,19 +14,19 @@ type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string }
 
-export async function getChannels() {
-  return prisma.channel.findMany({
+export async function getSubscriptions() {
+  return prisma.subscription.findMany({
     orderBy: { createdAt: "desc" }
   })
 }
 
-export async function getChannel(channelId: string) {
-  return prisma.channel.findUnique({
+export async function getSubscription(channelId: string) {
+  return prisma.subscription.findUnique({
     where: { channelId }
   })
 }
 
-export async function addChannel(url: string): Promise<ActionResult<{ id: number }>> {
+export async function addSubscription(url: string): Promise<ActionResult<{ id: number }>> {
   const validation = urlSchema.safeParse(url)
   if (!validation.success) {
     return { success: false, error: validation.error.issues[0].message }
@@ -38,16 +38,15 @@ export async function addChannel(url: string): Promise<ActionResult<{ id: number
       return { success: false, error: "Could not find channel" }
     }
 
-    // Check if channel already exists
-    const existing = await prisma.channel.findUnique({
+    const existing = await prisma.subscription.findUnique({
       where: { channelId: channelInfo.channelId }
     })
 
     if (existing) {
-      return { success: false, error: "Channel already added" }
+      return { success: false, error: "Already subscribed" }
     }
 
-    const channel = await prisma.channel.create({
+    const subscription = await prisma.subscription.create({
       data: {
         channelId: channelInfo.channelId,
         name: channelInfo.name,
@@ -56,25 +55,25 @@ export async function addChannel(url: string): Promise<ActionResult<{ id: number
     })
 
     revalidatePath("/")
-    revalidatePath("/channels")
+    revalidatePath("/subscriptions")
 
-    return { success: true, data: { id: channel.id } }
+    return { success: true, data: { id: subscription.id } }
   } catch (error) {
-    console.error("Error adding channel:", error)
-    return { success: false, error: "Failed to add channel" }
+    console.error("Error adding subscription:", error)
+    return { success: false, error: "Failed to add subscription" }
   }
 }
 
-export async function deleteChannel(id: number): Promise<ActionResult<null>> {
+export async function deleteSubscription(id: number): Promise<ActionResult<null>> {
   try {
-    await prisma.channel.delete({ where: { id } })
+    await prisma.subscription.delete({ where: { id } })
 
     revalidatePath("/")
-    revalidatePath("/channels")
+    revalidatePath("/subscriptions")
 
     return { success: true, data: null }
   } catch (error) {
-    console.error("Error deleting channel:", error)
-    return { success: false, error: "Failed to delete channel" }
+    console.error("Error deleting subscription:", error)
+    return { success: false, error: "Failed to delete subscription" }
   }
 }

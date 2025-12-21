@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { VideoCard } from "./VideoCard"
 import { loadMoreVideos, type VideoInfo } from "@/actions/videos"
 
@@ -9,7 +9,7 @@ interface VideoFeedProps {
   initialPageTokens: Record<string, string | null>
   watchedIds: Set<string>
   noteIds: Set<string>
-  filterChannelId?: string
+  filterChannelIds?: string[]
 }
 
 export function VideoFeed({
@@ -17,17 +17,23 @@ export function VideoFeed({
   initialPageTokens,
   watchedIds,
   noteIds,
-  filterChannelId,
+  filterChannelIds,
 }: VideoFeedProps) {
   const [videos, setVideos] = useState(initialVideos)
   const [pageTokens, setPageTokens] = useState(initialPageTokens)
   const [loading, setLoading] = useState(false)
 
+  // Reset state when filter changes
+  useEffect(() => {
+    setVideos(initialVideos)
+    setPageTokens(initialPageTokens)
+  }, [initialVideos, initialPageTokens, filterChannelIds])
+
   const hasMore = Object.values(pageTokens).some(token => token !== null)
 
   async function handleLoadMore() {
     setLoading(true)
-    const result = await loadMoreVideos(pageTokens, filterChannelId)
+    const result = await loadMoreVideos(pageTokens, filterChannelIds)
 
     // Filter out duplicates
     const existingIds = new Set(videos.map(v => v.videoId))

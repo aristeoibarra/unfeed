@@ -1,10 +1,10 @@
 "use client"
 
-import { addChannel } from "@/actions/channels"
+import { addSubscription } from "@/actions/subscriptions"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-export function AddChannel() {
+export function AddSubscription() {
   const router = useRouter()
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
@@ -17,7 +17,7 @@ export function AddChannel() {
     setLoading(true)
     setError(null)
 
-    const result = await addChannel(url)
+    const result = await addSubscription(url)
 
     if (result.success) {
       setUrl("")
@@ -44,7 +44,7 @@ export function AddChannel() {
         disabled={loading || !url.trim()}
         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? "Adding..." : "Add Channel"}
+        {loading ? "Adding..." : "Add"}
       </button>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </form>

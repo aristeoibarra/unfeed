@@ -41,10 +41,10 @@ export default function RootLayout({
                 Watch Later
               </Link>
               <Link
-                href="/channels"
+                href="/subscriptions"
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               >
-                Channels
+                Subscriptions
               </Link>
             </div>
           </nav>

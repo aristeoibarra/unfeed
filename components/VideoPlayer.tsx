@@ -41,7 +41,7 @@ export function VideoPlayer({
 
         <div className="flex items-center justify-between">
           <Link
-            href={`/channel/${video.channelId}`}
+            href={`/subscription/${video.channelId}`}
             className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
           >
             {video.channelName}

@@ -1,40 +1,40 @@
-import { getChannel } from "@/actions/channels"
+import { getSubscription } from "@/actions/subscriptions"
 import { getVideoIdsWithNotes } from "@/actions/notes"
 import { getVideosByChannel } from "@/actions/videos"
 import { getWatchedVideoIds } from "@/actions/watched"
-import { ChannelHeader } from "@/components/ChannelHeader"
+import { SubscriptionHeader } from "@/components/SubscriptionHeader"
 import { VideoFeed } from "@/components/VideoFeed"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-interface ChannelPageProps {
+interface SubscriptionPageProps {
   params: Promise<{ channelId: string }>
 }
 
-export async function generateMetadata({ params }: ChannelPageProps) {
+export async function generateMetadata({ params }: SubscriptionPageProps) {
   const { channelId } = await params
-  const channel = await getChannel(channelId)
+  const subscription = await getSubscription(channelId)
 
-  if (!channel) {
-    return { title: "Channel not found - Unfeed" }
+  if (!subscription) {
+    return { title: "Subscription not found - Unfeed" }
   }
 
   return {
-    title: `${channel.name} - Unfeed`,
-    description: `Videos from ${channel.name}`,
+    title: `${subscription.name} - Unfeed`,
+    description: `Videos from ${subscription.name}`,
   }
 }
 
-export default async function ChannelPage({ params }: ChannelPageProps) {
+export default async function SubscriptionPage({ params }: SubscriptionPageProps) {
   const { channelId } = await params
-  const [channel, result, watchedIds, noteIds] = await Promise.all([
-    getChannel(channelId),
+  const [subscription, result, watchedIds, noteIds] = await Promise.all([
+    getSubscription(channelId),
     getVideosByChannel(channelId),
     getWatchedVideoIds(),
     getVideoIdsWithNotes(),
   ])
 
-  if (!channel) {
+  if (!subscription) {
     notFound()
   }
 
@@ -43,12 +43,12 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
 
   return (
     <div className="space-y-6">
-      <ChannelHeader channel={channel} />
+      <SubscriptionHeader subscription={subscription} />
 
       {result.videos.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400">
-            No videos found for this channel.
+            No videos found for this subscription.
           </p>
         </div>
       ) : (
@@ -57,7 +57,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
           initialPageTokens={result.pageTokens}
           watchedIds={watchedSet}
           noteIds={noteSet}
-          filterChannelId={channelId}
+          filterChannelIds={[channelId]}
         />
       )}
 

@@ -5,12 +5,12 @@ import { getChannelVideos, getVideoInfo, type VideoInfo, type VideosResult } fro
 
 export type { VideoInfo }
 
-export async function getVideos(filterChannelId?: string): Promise<VideosResult> {
-  const channels = await prisma.channel.findMany()
-  let channelIds = channels.map(c => c.channelId)
+export async function getVideos(filterChannelIds?: string[]): Promise<VideosResult> {
+  const subscriptions = await prisma.subscription.findMany()
+  let channelIds = subscriptions.map(s => s.channelId)
 
-  if (filterChannelId) {
-    channelIds = channelIds.filter(id => id === filterChannelId)
+  if (filterChannelIds && filterChannelIds.length > 0) {
+    channelIds = channelIds.filter(id => filterChannelIds.includes(id))
   }
 
   if (channelIds.length === 0) return { videos: [], pageTokens: {} }
@@ -20,13 +20,13 @@ export async function getVideos(filterChannelId?: string): Promise<VideosResult>
 
 export async function loadMoreVideos(
   pageTokens: Record<string, string | null>,
-  filterChannelId?: string
+  filterChannelIds?: string[]
 ): Promise<VideosResult> {
-  const channels = await prisma.channel.findMany()
-  let channelIds = channels.map(c => c.channelId)
+  const subscriptions = await prisma.subscription.findMany()
+  let channelIds = subscriptions.map(s => s.channelId)
 
-  if (filterChannelId) {
-    channelIds = channelIds.filter(id => id === filterChannelId)
+  if (filterChannelIds && filterChannelIds.length > 0) {
+    channelIds = channelIds.filter(id => filterChannelIds.includes(id))
   }
 
   if (channelIds.length === 0) return { videos: [], pageTokens: {} }
