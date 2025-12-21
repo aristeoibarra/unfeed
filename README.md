@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unfeed
 
-## Getting Started
+Personal YouTube focused on educational content, without distractions.
 
-First, run the development server:
+## Problem
+
+- YouTube is designed to maximize engagement (algorithm, autoplay, shorts)
+- For people with ADHD/procrastination, it's a trap
+- Blocking YouTube completely removes useful educational content
+
+## Solution
+
+A local web application that:
+- Shows only videos from channels YOU choose (whitelist)
+- No recommendation algorithm
+- No autoplay
+- No shorts
+- Runs locally with `bun run dev`
+
+## Stack
+
+- Next.js 16 (App Router)
+- Prisma 7 + SQLite
+- Server Actions
+- YouTube Data API v3
+- Tailwind CSS
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+bun install
+
+# Configure environment variables
+cp .env.example .env.local
+# Edit .env.local with your YOUTUBE_API_KEY
+
+# Initialize database
+bunx prisma generate
+bunx prisma db push
+
+# Start server
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configure YouTube API Key
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable "YouTube Data API v3"
+4. Create credentials > API Key
+5. Copy key to `.env.local`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+1. Open http://localhost:3000
+2. Go to "Channels" and add channels by URL (e.g., `https://youtube.com/@midudev`)
+3. View the video feed on the home page
+4. Click on a video to play it
 
-To learn more about Next.js, take a look at the following resources:
+## NextDNS Configuration (Optional)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To block regular YouTube and only allow Unfeed:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Allowlist:**
+```
+youtube-nocookie.com
+youtube.googleapis.com
+i.ytimg.com
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Blocklist:**
+```
+youtube.com
+www.youtube.com
+m.youtube.com
+```
