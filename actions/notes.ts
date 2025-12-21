@@ -3,6 +3,13 @@
 import { prisma } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
+export async function getVideoIdsWithNotes(): Promise<string[]> {
+  const notes = await prisma.videoNote.findMany({
+    select: { videoId: true }
+  })
+  return notes.map(n => n.videoId)
+}
+
 export async function getNote(videoId: string) {
   return prisma.videoNote.findUnique({
     where: { videoId }

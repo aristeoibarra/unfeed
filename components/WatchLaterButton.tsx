@@ -64,17 +64,17 @@ export function WatchLaterButton({ video, isInWatchLater: initial, variant = "bu
     <button
       onClick={handleToggle}
       disabled={loading}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
         isInWatchLater
           ? "bg-blue-600 text-white hover:bg-blue-700"
-          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+          : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
       } disabled:opacity-50`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-5 h-5"
+        className="w-4 h-4"
       >
         <path
           fillRule="evenodd"
@@ -82,7 +82,7 @@ export function WatchLaterButton({ video, isInWatchLater: initial, variant = "bu
           clipRule="evenodd"
         />
       </svg>
-      {loading ? "..." : isInWatchLater ? "In Watch Later" : "Watch Later"}
+      {loading ? "..." : isInWatchLater ? "Saved" : "Watch Later"}
     </button>
   )
 }

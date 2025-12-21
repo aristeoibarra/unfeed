@@ -1,8 +1,9 @@
 import { getChannels } from "@/actions/channels"
+import { getVideoIdsWithNotes } from "@/actions/notes"
 import { getVideos } from "@/actions/videos"
 import { getWatchedVideoIds } from "@/actions/watched"
 import { ChannelFilter } from "@/components/ChannelFilter"
-import { VideoCard } from "@/components/VideoCard"
+import { VideoFeed } from "@/components/VideoFeed"
 import Link from "next/link"
 
 interface HomeProps {
@@ -12,13 +13,15 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const { channel: filterChannel } = await searchParams
 
-  const [videos, watchedIds, channels] = await Promise.all([
+  const [result, watchedIds, noteIds, channels] = await Promise.all([
     getVideos(filterChannel),
     getWatchedVideoIds(),
+    getVideoIdsWithNotes(),
     getChannels()
   ])
 
   const watchedSet = new Set(watchedIds)
+  const noteSet = new Set(noteIds)
 
   return (
     <div className="space-y-6">
@@ -34,7 +37,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
       <ChannelFilter channels={channels} />
 
-      {videos.length === 0 ? (
+      {result.videos.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             No videos yet. Add some channels to get started.
@@ -47,20 +50,13 @@ export default async function Home({ searchParams }: HomeProps) {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {videos.map((video) => (
-            <VideoCard
-              key={video.videoId}
-              videoId={video.videoId}
-              title={video.title}
-              thumbnail={video.thumbnail}
-              channelName={video.channelName}
-              channelId={video.channelId}
-              publishedAt={video.publishedAt}
-              isWatched={watchedSet.has(video.videoId)}
-            />
-          ))}
-        </div>
+        <VideoFeed
+          initialVideos={result.videos}
+          initialPageTokens={result.pageTokens}
+          watchedIds={watchedSet}
+          noteIds={noteSet}
+          filterChannelId={filterChannel}
+        />
       )}
     </div>
   )

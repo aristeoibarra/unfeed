@@ -99,21 +99,42 @@ export async function getChannelInfo(url: string): Promise<ChannelInfo | null> {
   }
 }
 
-export async function getChannelVideos(channelIds: string[]): Promise<VideoInfo[]> {
+export interface VideosResult {
+  videos: VideoInfo[]
+  pageTokens: Record<string, string | null>
+}
+
+export async function getChannelVideos(
+  channelIds: string[],
+  pageTokens?: Record<string, string | null>
+): Promise<VideosResult> {
   if (!YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not configured")
   }
 
-  if (channelIds.length === 0) return []
+  if (channelIds.length === 0) return { videos: [], pageTokens: {} }
 
   const videos: VideoInfo[] = []
+  const nextPageTokens: Record<string, string | null> = {}
 
-  // Fetch videos for each channel (max 10 per channel)
   for (const channelId of channelIds) {
-    const searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=10&key=${YOUTUBE_API_KEY}`
+    const pageToken = pageTokens?.[channelId]
+
+    // Skip if we've reached the end for this channel
+    if (pageToken === null) {
+      nextPageTokens[channelId] = null
+      continue
+    }
+
+    let searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=12&key=${YOUTUBE_API_KEY}`
+    if (pageToken) {
+      searchUrl += `&pageToken=${pageToken}`
+    }
 
     const res = await fetch(searchUrl)
     const data = await res.json()
+
+    nextPageTokens[channelId] = data.nextPageToken || null
 
     if (data.items) {
       for (const item of data.items) {
@@ -130,9 +151,11 @@ export async function getChannelVideos(channelIds: string[]): Promise<VideoInfo[
   }
 
   // Sort by publish date (newest first)
-  return videos.sort((a, b) =>
+  const sortedVideos = videos.sort((a, b) =>
     new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   )
+
+  return { videos: sortedVideos, pageTokens: nextPageTokens }
 }
 
 export async function getVideoInfo(videoId: string): Promise<VideoInfo | null> {
