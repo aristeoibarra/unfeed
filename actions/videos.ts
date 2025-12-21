@@ -13,13 +13,22 @@ const getCachedVideos = unstable_cache(
   { revalidate: 3600 } // 1 hour
 )
 
-export async function getVideos(): Promise<VideoInfo[]> {
+export async function getVideos(filterChannelId?: string): Promise<VideoInfo[]> {
   const channels = await prisma.channel.findMany()
-  const channelIds = channels.map(c => c.channelId)
+  let channelIds = channels.map(c => c.channelId)
+
+  // Filter to specific channel if provided
+  if (filterChannelId) {
+    channelIds = channelIds.filter(id => id === filterChannelId)
+  }
 
   if (channelIds.length === 0) return []
 
   return getCachedVideos(channelIds)
+}
+
+export async function getVideosByChannel(channelId: string): Promise<VideoInfo[]> {
+  return getCachedVideos([channelId])
 }
 
 export async function getVideo(videoId: string): Promise<VideoInfo | null> {

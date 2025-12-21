@@ -1,14 +1,17 @@
 import Link from "next/link"
+import { WatchedBadge } from "./WatchedBadge"
 
 interface VideoCardProps {
   videoId: string
   title: string
   thumbnail: string
   channelName: string
+  channelId?: string
   publishedAt: string
+  isWatched?: boolean
 }
 
-export function VideoCard({ videoId, title, thumbnail, channelName, publishedAt }: VideoCardProps) {
+export function VideoCard({ videoId, title, thumbnail, channelName, channelId, publishedAt, isWatched }: VideoCardProps) {
   const timeAgo = getTimeAgo(publishedAt)
 
   return (
@@ -18,8 +21,9 @@ export function VideoCard({ videoId, title, thumbnail, channelName, publishedAt 
           <img
             src={thumbnail}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ${isWatched ? "opacity-60" : ""}`}
           />
+          {isWatched && <WatchedBadge />}
         </div>
         <div className="space-y-1">
           <h3 className="font-medium line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400">

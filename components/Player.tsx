@@ -2,6 +2,7 @@
 
 interface PlayerProps {
   videoId: string
+  onWatched?: () => void
 }
 
 export function Player({ videoId }: PlayerProps) {

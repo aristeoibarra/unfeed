@@ -3,6 +3,7 @@
 import { deleteChannel } from "@/actions/channels"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import Link from "next/link"
 
 interface Channel {
   id: number
@@ -35,13 +36,16 @@ export function ChannelList({ channels }: ChannelListProps) {
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {channels.map((channel) => (
         <li
           key={channel.id}
-          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+          className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between"
         >
-          <div className="flex items-center gap-3">
+          <Link
+            href={`/channel/${channel.channelId}`}
+            className="flex items-center gap-3 hover:text-blue-600 dark:hover:text-blue-400"
+          >
             {channel.thumbnail && (
               <img
                 src={channel.thumbnail}
@@ -50,7 +54,7 @@ export function ChannelList({ channels }: ChannelListProps) {
               />
             )}
             <span className="font-medium">{channel.name}</span>
-          </div>
+          </Link>
           <button
             onClick={() => handleDelete(channel.id)}
             disabled={deletingId === channel.id}

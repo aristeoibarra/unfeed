@@ -33,12 +33,20 @@ export default function RootLayout({
             <Link href="/" className="text-xl font-bold">
               Unfeed
             </Link>
-            <Link
-              href="/channels"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              Channels
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/watch-later"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              >
+                Watch Later
+              </Link>
+              <Link
+                href="/channels"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              >
+                Channels
+              </Link>
+            </div>
           </nav>
         </header>
         <main className="max-w-6xl mx-auto px-4 py-8">

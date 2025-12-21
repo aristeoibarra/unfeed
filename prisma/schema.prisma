@@ -14,3 +14,27 @@ model Channel {
   thumbnail String?
   createdAt DateTime @default(now())
 }
+
+model WatchedVideo {
+  id        Int      @id @default(autoincrement())
+  videoId   String   @unique
+  watchedAt DateTime @default(now())
+}
+
+model WatchLater {
+  id          Int      @id @default(autoincrement())
+  videoId     String   @unique
+  title       String
+  thumbnail   String
+  channelId   String
+  channelName String
+  addedAt     DateTime @default(now())
+}
+
+model VideoNote {
+  id        Int      @id @default(autoincrement())
+  videoId   String   @unique
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

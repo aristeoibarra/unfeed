@@ -20,6 +20,12 @@ export async function getChannels() {
   })
 }
 
+export async function getChannel(channelId: string) {
+  return prisma.channel.findUnique({
+    where: { channelId }
+  })
+}
+
 export async function addChannel(url: string): Promise<ActionResult<{ id: number }>> {
   const validation = urlSchema.safeParse(url)
   if (!validation.success) {

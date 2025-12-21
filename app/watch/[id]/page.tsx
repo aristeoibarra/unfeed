@@ -1,5 +1,9 @@
 import { getVideo } from "@/actions/videos"
-import { Player } from "@/components/Player"
+import { isWatched } from "@/actions/watched"
+import { isInWatchLater } from "@/actions/watch-later"
+import { getNote } from "@/actions/notes"
+import { VideoPlayer } from "@/components/VideoPlayer"
+import { VideoNotes } from "@/components/VideoNotes"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 
@@ -23,20 +27,27 @@ export async function generateMetadata({ params }: WatchPageProps) {
 
 export default async function WatchPage({ params }: WatchPageProps) {
   const { id } = await params
-  const video = await getVideo(id)
+  const [video, watched, inWatchLater, note] = await Promise.all([
+    getVideo(id),
+    isWatched(id),
+    isInWatchLater(id),
+    getNote(id)
+  ])
 
   if (!video) {
     notFound()
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <Player videoId={id} />
+    <div className="max-w-4xl mx-auto space-y-6">
+      <VideoPlayer
+        videoId={id}
+        video={video}
+        initialWatched={watched}
+        initialInWatchLater={inWatchLater}
+      />
 
-      <div className="space-y-2">
-        <h1 className="text-xl font-bold">{video.title}</h1>
-        <p className="text-gray-600 dark:text-gray-400">{video.channelName}</p>
-      </div>
+      <VideoNotes videoId={id} initialNote={note} />
 
       <Link
         href="/"
