@@ -2,10 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { getUnreadCount, getRecentNotifications } from "@/actions/notifications";
+import { getSession } from "@/lib/auth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { DesktopNav } from "@/components/DesktopNav";
 import { VideoSearch } from "@/components/VideoSearch";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,9 +57,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [unreadCount, recentNotifications] = await Promise.all([
+  const [unreadCount, recentNotifications, session] = await Promise.all([
     getUnreadCount(),
-    getRecentNotifications(5)
+    getRecentNotifications(5),
+    getSession()
   ]);
 
   return (
@@ -93,13 +96,21 @@ export default async function RootLayout({
                 {/* Center: Desktop navigation */}
                 <DesktopNav />
 
-                {/* Right: Search + Notifications */}
+                {/* Right: Search + Notifications + Logout */}
                 <div className="flex items-center gap-2">
                   <VideoSearch />
                   <NotificationBell
                     initialCount={unreadCount}
                     initialNotifications={recentNotifications}
                   />
+                  {session && (
+                    <div className="flex items-center gap-3 ml-2 pl-2 border-l border-[var(--border)]">
+                      <span className="hidden md:inline text-sm text-[var(--muted-foreground)] truncate max-w-[120px]">
+                        {session.email}
+                      </span>
+                      <LogoutButton />
+                    </div>
+                  )}
                 </div>
               </div>
             </header>

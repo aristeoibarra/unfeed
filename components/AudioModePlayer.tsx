@@ -2,14 +2,29 @@
 
 import { useState, useEffect, useRef } from "react"
 import { usePlayer } from "@/contexts/PlayerContext"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Video,
+  Volume2,
+} from "lucide-react"
 
 interface AudioModePlayerProps {
   onSwitchToVideo: () => void
 }
 
 function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
   const secs = Math.floor(seconds % 60)
+
+  if (hours > 0) {
+    return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
   return `${mins}:${secs.toString().padStart(2, "0")}`
 }
 
@@ -22,152 +37,273 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     pause,
     resume,
     seek,
+    setCurrentTime,
+    setDuration,
+    setIsPlaying,
+    currentTime: contextCurrentTime,
   } = usePlayer()
 
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
+  const [localCurrentTime, setLocalCurrentTime] = useState(0)
+  const [localDuration, setLocalDuration] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const progressRef = useRef<HTMLDivElement>(null)
+  const initialSeekDoneRef = useRef(false)
 
+  // Sync local state with context
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime)
-    const handleDurationChange = () => setDuration(audio.duration || 0)
-    const handleEnded = () => pause()
+    const handleTimeUpdate = () => {
+      const time = audio.currentTime
+      setLocalCurrentTime(time)
+      setCurrentTime(time)
+    }
+
+    const handleDurationChange = () => {
+      const dur = audio.duration || 0
+      setLocalDuration(dur)
+      setDuration(dur)
+    }
+
+    const handleEnded = () => {
+      pause()
+      setIsPlaying(false)
+    }
+
+    const handlePlay = () => {
+      setIsPlaying(true)
+      setIsLoading(false)
+    }
+
+    const handlePause = () => {
+      setIsPlaying(false)
+    }
+
+    const handleCanPlay = () => {
+      setIsLoading(false)
+
+      // Seek to context time if this is the first load and there's a saved position
+      if (!initialSeekDoneRef.current && contextCurrentTime > 0) {
+        initialSeekDoneRef.current = true
+        audio.currentTime = contextCurrentTime
+      }
+    }
+
+    const handleWaiting = () => {
+      setIsLoading(true)
+    }
+
+    const handlePlaying = () => {
+      setIsLoading(false)
+    }
 
     audio.addEventListener("timeupdate", handleTimeUpdate)
     audio.addEventListener("durationchange", handleDurationChange)
     audio.addEventListener("ended", handleEnded)
+    audio.addEventListener("play", handlePlay)
+    audio.addEventListener("pause", handlePause)
+    audio.addEventListener("canplay", handleCanPlay)
+    audio.addEventListener("waiting", handleWaiting)
+    audio.addEventListener("playing", handlePlaying)
+
+    // Initialize with current values
+    if (audio.duration) {
+      setLocalDuration(audio.duration)
+      setDuration(audio.duration)
+    }
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate)
       audio.removeEventListener("durationchange", handleDurationChange)
       audio.removeEventListener("ended", handleEnded)
+      audio.removeEventListener("play", handlePlay)
+      audio.removeEventListener("pause", handlePause)
+      audio.removeEventListener("canplay", handleCanPlay)
+      audio.removeEventListener("waiting", handleWaiting)
+      audio.removeEventListener("playing", handlePlaying)
     }
-  }, [audioRef, pause])
+  }, [audioRef, pause, setCurrentTime, setDuration, setIsPlaying, contextCurrentTime])
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !duration) return
+    if (!progressRef.current || !localDuration) return
 
     const rect = progressRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const percentage = x / rect.width
-    const newTime = percentage * duration
+    const newTime = percentage * localDuration
     seek(newTime)
   }
 
   const handleSeekBackward = () => {
-    seek(Math.max(0, currentTime - 10))
+    seek(Math.max(0, localCurrentTime - 10))
   }
 
   const handleSeekForward = () => {
-    seek(Math.min(duration, currentTime + 10))
+    seek(Math.min(localDuration, localCurrentTime + 10))
+  }
+
+  const handleSwitchToVideo = () => {
+    // Get current audio time to sync with video
+    const currentAudioTime = audioRef.current?.currentTime || localCurrentTime
+
+    // Pause audio before switching
+    if (audioRef.current) {
+      audioRef.current.pause()
+    }
+
+    // Update context with current time so video can pick it up
+    setCurrentTime(currentAudioTime)
+
+    // Call the switch handler
+    onSwitchToVideo()
   }
 
   if (!currentVideo) return null
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0
+  const progress = localDuration > 0 ? (localCurrentTime / localDuration) * 100 : 0
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-[var(--card)] dark:bg-gradient-to-b dark:from-[#1a1a1a] dark:to-[#0f0f0f] rounded-xl p-6 md:p-8">
       <div className="flex flex-col items-center space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-2 text-blue-400">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-          </svg>
-          <span className="font-medium">Audio Only Mode</span>
+        {/* Header - Clear visual indicator for audio mode */}
+        <div
+          className="flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-4 py-2 rounded-full"
+          role="status"
+          aria-live="polite"
+        >
+          <Volume2 className="w-5 h-5" aria-hidden="true" />
+          <span className="font-medium text-sm">Audio Only Mode</span>
         </div>
 
-        {/* Thumbnail */}
-        <div className="w-48 h-48 rounded-lg overflow-hidden shadow-lg">
+        {/* Thumbnail - Larger on desktop for better visual hierarchy */}
+        <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-xl overflow-hidden shadow-lg ring-1 ring-[var(--border)]">
           <img
             src={currentVideo.thumbnail}
-            alt={currentVideo.title}
+            alt=""
+            aria-hidden="true"
             className="w-full h-full object-cover"
           />
+          {isLoading && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div
+                className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
+                role="status"
+                aria-label="Loading audio"
+              />
+            </div>
+          )}
         </div>
 
-        {/* Title & Channel */}
-        <div className="text-center">
-          <h2 className="font-semibold text-white line-clamp-2">{currentVideo.title}</h2>
-          <p className="text-sm text-gray-400 mt-1">{currentVideo.channelName}</p>
+        {/* Title & Channel - Clear hierarchy for TDA users */}
+        <div className="text-center max-w-md space-y-1">
+          <h2 className="font-semibold text-[var(--foreground)] line-clamp-2 text-lg">
+            {currentVideo.title}
+          </h2>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            {currentVideo.channelName}
+          </p>
         </div>
 
-        {/* Progress bar */}
-        <div className="w-full max-w-md">
+        {/* Progress bar - Larger click area for better accessibility */}
+        <div className="w-full max-w-md" role="group" aria-label="Audio progress">
           <div
             ref={progressRef}
-            className="h-2 bg-gray-700 rounded-full cursor-pointer"
+            className={cn(
+              "h-3 md:h-2 bg-[var(--secondary)] rounded-full cursor-pointer group",
+              "hover:h-4 transition-all duration-150"
+            )}
             onClick={handleProgressClick}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft') {
+                handleSeekBackward()
+              } else if (e.key === 'ArrowRight') {
+                handleSeekForward()
+              }
+            }}
+            tabIndex={0}
+            role="slider"
+            aria-label="Seek audio"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress)}
+            aria-valuetext={`${formatTime(localCurrentTime)} of ${formatTime(localDuration)}`}
           >
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-100"
+              className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-100 relative"
               style={{ width: `${progress}%` }}
-            />
+            >
+              {/* Scrubber dot - Always visible for better affordance */}
+              <div className={cn(
+                "absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md",
+                "ring-2 ring-blue-600 dark:ring-blue-500",
+                "opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100 transition-opacity"
+              )} />
+            </div>
           </div>
-          <div className="flex justify-between text-sm text-gray-400 mt-1">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+          {/* Time display - Clear labels */}
+          <div className="flex justify-between text-sm text-[var(--muted-foreground)] mt-2 font-mono">
+            <time aria-label="Current time">{formatTime(localCurrentTime)}</time>
+            <time aria-label="Total duration">{formatTime(localDuration)}</time>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-6">
+        {/* Controls - Large touch targets (min 44px) */}
+        <div className="flex items-center gap-4 md:gap-6" role="group" aria-label="Playback controls">
           {/* Seek backward 10s */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleSeekBackward}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className="h-12 w-12 rounded-full text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]"
             aria-label="Seek backward 10 seconds"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-              <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clipRule="evenodd" />
-            </svg>
-          </button>
+            <SkipBack className="w-6 h-6" />
+          </Button>
 
-          {/* Play/Pause */}
-          <button
+          {/* Play/Pause - Primary action, most prominent */}
+          <Button
             onClick={isPlaying ? pause : resume}
-            className="p-4 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition-colors"
-            aria-label={isPlaying ? "Pause" : "Play"}
+            disabled={isLoading && !audioRef.current?.src}
+            className={cn(
+              "h-16 w-16 rounded-full shadow-lg",
+              "bg-blue-600 hover:bg-blue-700 text-white",
+              "focus-visible:ring-4 focus-visible:ring-blue-500/50",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+            aria-label={isPlaying ? "Pause audio" : "Play audio"}
           >
             {isPlaying ? (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
-              </svg>
+              <Pause className="w-8 h-8" />
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
-              </svg>
+              <Play className="w-8 h-8 ml-1" />
             )}
-          </button>
+          </Button>
 
           {/* Seek forward 10s */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleSeekForward}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className="h-12 w-12 rounded-full text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]"
             aria-label="Seek forward 10 seconds"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-              <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm4.28 10.28a.75.75 0 000-1.06l-3-3a.75.75 0 10-1.06 1.06l1.72 1.72H8.25a.75.75 0 000 1.5h5.69l-1.72 1.72a.75.75 0 101.06 1.06l3-3z" clipRule="evenodd" />
-            </svg>
-          </button>
+            <SkipForward className="w-6 h-6" />
+          </Button>
         </div>
 
-        {/* Switch to video button */}
-        <button
-          onClick={onSwitchToVideo}
-          className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+        {/* Switch to video button - Secondary action */}
+        <Button
+          variant="outline"
+          onClick={handleSwitchToVideo}
+          className="gap-2"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-          </svg>
+          <Video className="w-4 h-4" aria-hidden="true" />
           Switch to video
-        </button>
+        </Button>
 
-        {/* Info message */}
-        <p className="text-xs text-gray-500 text-center max-w-sm">
+        {/* Info message - Helpful context for users */}
+        <p className="text-xs text-[var(--muted-foreground)] text-center max-w-sm bg-[var(--muted)] px-4 py-2 rounded-lg">
           Audio will continue playing even if you turn off the screen or switch apps.
         </p>
       </div>
@@ -178,8 +314,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
           ref={audioRef}
           src={audioUrl}
           autoPlay={isPlaying}
-          onPlay={() => {}}
-          onPause={() => {}}
+          preload="auto"
         />
       )}
     </div>

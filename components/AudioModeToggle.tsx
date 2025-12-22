@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react"
 import { getAudioUrl, isAudioModeAvailable } from "@/actions/audio"
 import { usePlayer } from "@/contexts/PlayerContext"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { Volume2, Loader2, Video } from "lucide-react"
 
 interface AudioModeToggleProps {
   videoId: string
@@ -12,26 +15,53 @@ interface AudioModeToggleProps {
     thumbnail: string
     duration?: number | null
   }
+  currentVideoTime?: number // Current time from video player for sync
 }
 
-export function AudioModeToggle({ videoId, video }: AudioModeToggleProps) {
+export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioModeToggleProps) {
   const [isAvailable, setIsAvailable] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { isAudioMode, toggleAudioMode, playVideo, setAudioUrl } = usePlayer()
+  const [error, setError] = useState<string | null>(null)
+
+  const {
+    isAudioMode,
+    toggleAudioMode,
+    playVideo,
+    setAudioUrl,
+    seek,
+    currentTime,
+    youtubePlayerControls,
+  } = usePlayer()
 
   useEffect(() => {
     isAudioModeAvailable().then(setIsAvailable)
   }, [])
 
   const handleToggle = async () => {
+    setError(null)
+
     if (isAudioMode) {
+      // Switching from audio to video mode
+      // The video player will handle syncing via the currentTime from context
       toggleAudioMode()
       return
     }
 
+    // Switching from video to audio mode
     setIsLoading(true)
     try {
+      // Get current time from YouTube player if available
+      let syncTime = currentVideoTime
+      if (youtubePlayerControls) {
+        try {
+          syncTime = youtubePlayerControls.getCurrentTime() || currentVideoTime
+        } catch {
+          // Player might not be ready, use fallback
+        }
+      }
+
       const audioUrl = await getAudioUrl(videoId)
+
       if (audioUrl) {
         setAudioUrl(audioUrl)
         playVideo({
@@ -42,12 +72,19 @@ export function AudioModeToggle({ videoId, video }: AudioModeToggleProps) {
           duration: video.duration,
         })
         toggleAudioMode()
+
+        // Sync to current video time after a short delay to let audio load
+        if (syncTime > 0) {
+          setTimeout(() => {
+            seek(syncTime)
+          }, 500)
+        }
       } else {
-        // Audio URL not available - show message
-        alert("El modo de audio no esta disponible. Se requiere configurar el backend.")
+        setError("Audio mode is not available. Please ensure yt-dlp is configured on the server.")
       }
-    } catch (error) {
-      console.error("Error activating audio mode:", error)
+    } catch (err) {
+      console.error("Error activating audio mode:", err)
+      setError("Failed to activate audio mode. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -59,33 +96,110 @@ export function AudioModeToggle({ videoId, video }: AudioModeToggleProps) {
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-      <div className="flex items-center justify-between">
+    <div
+      className={cn(
+        "bg-[var(--muted)] rounded-xl p-4",
+        "ring-1 ring-[var(--border)]",
+        isAudioMode && "ring-2 ring-blue-500/50 bg-blue-50 dark:bg-blue-950/30"
+      )}
+      role="region"
+      aria-label="Audio mode controls"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left side - Icon and description */}
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600 dark:text-blue-400">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-            </svg>
+          <div className={cn(
+            "p-2.5 rounded-xl transition-colors",
+            isAudioMode
+              ? "bg-blue-600 text-white"
+              : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
+          )}>
+            <Volume2 className="w-5 h-5" aria-hidden="true" />
           </div>
-          <div>
-            <h3 className="font-medium text-sm">Modo Solo Audio</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Escucha en segundo plano ahorrando datos
+          <div className="space-y-0.5">
+            <h3 className="font-medium text-sm text-[var(--foreground)]">
+              Audio Only Mode
+            </h3>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {isAudioMode
+                ? "Currently playing audio only"
+                : "Listen in the background and save data"}
             </p>
           </div>
         </div>
-        <button
+
+        {/* Right side - Toggle button */}
+        <Button
           onClick={handleToggle}
           disabled={isLoading}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isAudioMode
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-          } disabled:opacity-50`}
+          variant={isAudioMode ? "default" : "secondary"}
+          className={cn(
+            "gap-2 min-w-[140px]",
+            isAudioMode && "bg-blue-600 hover:bg-blue-700"
+          )}
+          aria-pressed={isAudioMode}
+          aria-describedby="audio-mode-description"
         >
-          {isLoading ? "Cargando..." : isAudioMode ? "Activado" : "Activar"}
-        </button>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              <span>Loading...</span>
+            </>
+          ) : isAudioMode ? (
+            <>
+              <Video className="w-4 h-4" aria-hidden="true" />
+              <span>Switch to Video</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-4 h-4" aria-hidden="true" />
+              <span>Enable Audio</span>
+            </>
+          )}
+        </Button>
       </div>
+
+      {/* Hidden description for screen readers */}
+      <span id="audio-mode-description" className="sr-only">
+        {isAudioMode
+          ? "Audio mode is enabled. Click to switch back to video mode."
+          : "Click to enable audio-only mode. Audio will continue playing in the background."}
+      </span>
+
+      {/* Error message - Clear feedback for users */}
+      {error && (
+        <div
+          className="mt-3 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 text-sm rounded-lg border border-red-200 dark:border-red-900"
+          role="alert"
+          aria-live="assertive"
+        >
+          <p className="font-medium">Unable to load audio</p>
+          <p className="text-xs mt-1 opacity-80">{error}</p>
+        </div>
+      )}
+
+      {/* Sync info when in audio mode - Positive feedback */}
+      {isAudioMode && currentTime > 0 && (
+        <div
+          className="mt-3 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" aria-hidden="true" />
+          Playing from {formatTime(currentTime)}
+        </div>
+      )}
     </div>
   )
+}
+
+function formatTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = Math.floor(seconds % 60)
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
+  return `${minutes}:${secs.toString().padStart(2, "0")}`
 }

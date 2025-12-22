@@ -1,6 +1,8 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react"
+import { updateProgress } from "@/actions/history"
+import type { YouTubePlayerControls } from "@/hooks/useYouTubePlayer"
 
 interface VideoInfo {
   videoId: string
@@ -18,6 +20,14 @@ interface PlayerContextType {
   currentTime: number
   duration: number
 
+  // History tracking
+  historyId: number | null
+  setHistoryId: (id: number | null) => void
+
+  // Saved progress for resume
+  savedProgress: number | null
+  setSavedProgress: (progress: number | null) => void
+
   // Actions
   playVideo: (video: VideoInfo) => void
   pause: () => void
@@ -25,14 +35,24 @@ interface PlayerContextType {
   toggleAudioMode: () => void
   seek: (time: number) => void
   stop: () => void
+  setCurrentTime: (time: number) => void
+  setDuration: (duration: number) => void
+  setIsPlaying: (playing: boolean) => void
 
   // Audio ref for controlling playback
   audioRef: React.RefObject<HTMLAudioElement | null>
   setAudioUrl: (url: string | null) => void
   audioUrl: string | null
+
+  // YouTube player controls via postMessage
+  youtubePlayerControls: YouTubePlayerControls | null
+  setYouTubePlayerControls: (controls: YouTubePlayerControls | null) => void
 }
 
 const PlayerContext = createContext<PlayerContextType | null>(null)
+
+// Progress save interval in milliseconds (10 seconds)
+const PROGRESS_SAVE_INTERVAL = 10000
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentVideo, setCurrentVideo] = useState<VideoInfo | null>(null)
@@ -41,7 +61,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [historyId, setHistoryId] = useState<number | null>(null)
+  const [savedProgress, setSavedProgress] = useState<number | null>(null)
+  const [youtubePlayerControls, setYouTubePlayerControls] = useState<YouTubePlayerControls | null>(null)
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const lastSavedProgressRef = useRef<number>(0)
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Media Session API setup
   useEffect(() => {
@@ -57,30 +83,51 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     })
 
     navigator.mediaSession.setActionHandler("play", () => {
-      audioRef.current?.play()
+      if (isAudioMode) {
+        audioRef.current?.play()
+      } else if (youtubePlayerControls) {
+        youtubePlayerControls.playVideo()
+      }
       setIsPlaying(true)
     })
 
     navigator.mediaSession.setActionHandler("pause", () => {
-      audioRef.current?.pause()
+      if (isAudioMode) {
+        audioRef.current?.pause()
+      } else if (youtubePlayerControls) {
+        youtubePlayerControls.pauseVideo()
+      }
       setIsPlaying(false)
     })
 
     navigator.mediaSession.setActionHandler("seekbackward", () => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10)
+      const newTime = Math.max(0, currentTime - 10)
+      if (isAudioMode && audioRef.current) {
+        audioRef.current.currentTime = newTime
+      } else if (youtubePlayerControls) {
+        youtubePlayerControls.seekTo(newTime, true)
       }
+      setCurrentTime(newTime)
     })
 
     navigator.mediaSession.setActionHandler("seekforward", () => {
-      if (audioRef.current) {
-        audioRef.current.currentTime += 10
+      const newTime = currentTime + 10
+      if (isAudioMode && audioRef.current) {
+        audioRef.current.currentTime = newTime
+      } else if (youtubePlayerControls) {
+        youtubePlayerControls.seekTo(newTime, true)
       }
+      setCurrentTime(newTime)
     })
 
     navigator.mediaSession.setActionHandler("seekto", (details) => {
-      if (audioRef.current && details.seekTime !== undefined) {
-        audioRef.current.currentTime = details.seekTime
+      if (details.seekTime !== undefined) {
+        if (isAudioMode && audioRef.current) {
+          audioRef.current.currentTime = details.seekTime
+        } else if (youtubePlayerControls) {
+          youtubePlayerControls.seekTo(details.seekTime, true)
+        }
+        setCurrentTime(details.seekTime)
       }
     })
 
@@ -91,35 +138,91 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.setActionHandler("seekforward", null)
       navigator.mediaSession.setActionHandler("seekto", null)
     }
-  }, [currentVideo])
+  }, [currentVideo, isAudioMode, currentTime, youtubePlayerControls])
 
   // Update position state for Media Session
   useEffect(() => {
-    if (!("mediaSession" in navigator) || !isAudioMode) return
+    if (!("mediaSession" in navigator)) return
 
     navigator.mediaSession.setPositionState({
       duration: duration,
       playbackRate: 1,
       position: currentTime
     })
-  }, [currentTime, duration, isAudioMode])
+  }, [currentTime, duration])
+
+  // Auto-save progress every 10 seconds
+  useEffect(() => {
+    if (!historyId || !isPlaying) {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+        progressIntervalRef.current = null
+      }
+      return
+    }
+
+    const saveProgress = () => {
+      const time = Math.floor(currentTime)
+      const dur = Math.floor(duration)
+
+      // Only save if time has changed significantly (at least 5 seconds)
+      if (time > 0 && dur > 0 && Math.abs(time - lastSavedProgressRef.current) >= 5) {
+        lastSavedProgressRef.current = time
+        updateProgress(historyId, time, dur).catch(console.error)
+      }
+    }
+
+    // Initial save after 5 seconds of playback
+    const initialTimeout = setTimeout(() => {
+      saveProgress()
+
+      // Then save every 10 seconds
+      progressIntervalRef.current = setInterval(saveProgress, PROGRESS_SAVE_INTERVAL)
+    }, 5000)
+
+    return () => {
+      clearTimeout(initialTimeout)
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+        progressIntervalRef.current = null
+      }
+    }
+  }, [historyId, isPlaying, currentTime, duration])
+
+  // Save progress when video stops or changes
+  useEffect(() => {
+    return () => {
+      if (historyId && currentTime > 0 && duration > 0) {
+        updateProgress(historyId, Math.floor(currentTime), Math.floor(duration)).catch(console.error)
+      }
+    }
+  }, [historyId, currentTime, duration])
 
   const playVideo = useCallback((video: VideoInfo) => {
     setCurrentVideo(video)
     setIsPlaying(true)
     setCurrentTime(0)
     setDuration(video.duration || 0)
+    lastSavedProgressRef.current = 0
   }, [])
 
   const pause = useCallback(() => {
     setIsPlaying(false)
-    audioRef.current?.pause()
-  }, [])
+    if (isAudioMode) {
+      audioRef.current?.pause()
+    } else if (youtubePlayerControls) {
+      youtubePlayerControls.pauseVideo()
+    }
+  }, [isAudioMode, youtubePlayerControls])
 
   const resume = useCallback(() => {
     setIsPlaying(true)
-    audioRef.current?.play()
-  }, [])
+    if (isAudioMode) {
+      audioRef.current?.play()
+    } else if (youtubePlayerControls) {
+      youtubePlayerControls.playVideo()
+    }
+  }, [isAudioMode, youtubePlayerControls])
 
   const toggleAudioMode = useCallback(() => {
     setIsAudioMode(prev => !prev)
@@ -127,19 +230,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const seek = useCallback((time: number) => {
     setCurrentTime(time)
-    if (audioRef.current) {
+    if (isAudioMode && audioRef.current) {
       audioRef.current.currentTime = time
+    } else if (youtubePlayerControls) {
+      youtubePlayerControls.seekTo(time, true)
     }
-  }, [])
+  }, [isAudioMode, youtubePlayerControls])
 
   const stop = useCallback(() => {
+    // Save final progress before stopping
+    if (historyId && currentTime > 0 && duration > 0) {
+      updateProgress(historyId, Math.floor(currentTime), Math.floor(duration)).catch(console.error)
+    }
+
     setCurrentVideo(null)
     setIsPlaying(false)
     setIsAudioMode(false)
     setCurrentTime(0)
     setDuration(0)
     setAudioUrl(null)
-  }, [])
+    setHistoryId(null)
+    setSavedProgress(null)
+    lastSavedProgressRef.current = 0
+  }, [historyId, currentTime, duration])
 
   return (
     <PlayerContext.Provider
@@ -149,15 +262,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         isAudioMode,
         currentTime,
         duration,
+        historyId,
+        setHistoryId,
+        savedProgress,
+        setSavedProgress,
         playVideo,
         pause,
         resume,
         toggleAudioMode,
         seek,
         stop,
+        setCurrentTime,
+        setDuration,
+        setIsPlaying,
         audioRef,
         audioUrl,
         setAudioUrl,
+        youtubePlayerControls,
+        setYouTubePlayerControls,
       }}
     >
       {children}

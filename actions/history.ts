@@ -134,3 +134,33 @@ export async function clearHistory(): Promise<void> {
 export async function getHistoryCount(): Promise<number> {
   return prisma.watchHistory.count()
 }
+
+// Get the latest history entry for a specific video (for resume functionality)
+export async function getVideoProgress(videoId: string): Promise<{
+  historyId: number
+  progress: number
+  duration: number | null
+  completed: boolean
+} | null> {
+  const entry = await prisma.watchHistory.findFirst({
+    where: { videoId },
+    orderBy: { watchedAt: "desc" },
+    select: {
+      id: true,
+      progress: true,
+      duration: true,
+      completed: true,
+    },
+  })
+
+  if (!entry || !entry.progress || entry.progress <= 0) {
+    return null
+  }
+
+  return {
+    historyId: entry.id,
+    progress: entry.progress,
+    duration: entry.duration,
+    completed: entry.completed,
+  }
+}
