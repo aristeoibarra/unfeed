@@ -259,25 +259,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     lastSavedProgressRef.current = 0
   }, [historyId, currentTime, duration])
 
+  // Update Media Session playback state
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return
+
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused"
+  }, [isPlaying])
+
   // Handle page visibility changes (phone sleep/wake, tab switching)
+  // IMPORTANT: In audio mode, we let audio continue playing in background
   useEffect(() => {
     const handleVisibilityChange = () => {
       const audio = audioRef.current
 
       if (document.hidden) {
         // Page is being hidden (phone sleep, app switch, tab change)
-        // Save current playing state to restore later
         wasPlayingBeforeHiddenRef.current = isPlaying
 
-        // For audio mode, we want audio to continue in background
-        // But we need to sync state when coming back
-        if (isAudioMode && audio) {
-          // Audio can continue playing in background
-          // Just make sure our state reflects reality
-          if (audio.paused && isPlaying) {
-            setIsPlaying(false)
-          }
-        }
+        // In audio mode: DO NOT pause - let it continue in background like Spotify
+        // The audio element will keep playing, Media Session controls will work
+
+        // For video mode only: we might want to pause
+        // But we don't force pause here either - let the user control it
       } else {
         // Page is becoming visible again (phone wake, app resume)
         if (isAudioMode && audio) {
@@ -287,20 +290,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           if (isPlaying !== isActuallyPlaying) {
             setIsPlaying(isActuallyPlaying)
           }
-
-          // If user was playing before and audio got paused by system,
-          // try to resume (may fail due to autoplay policy)
-          if (wasPlayingBeforeHiddenRef.current && audio.paused) {
-            audio.play().catch(() => {
-              // Autoplay blocked - user needs to interact
-              // Update state to reflect paused state
-              setIsPlaying(false)
-            })
-          }
         } else if (youtubePlayerControls) {
           // For video mode, sync with YouTube player state
           const ytState = youtubePlayerControls.getPlayerState()
-          // YouTubePlayerState.PLAYING = 1
           const isYtPlaying = ytState === 1
           if (isPlaying !== isYtPlaying) {
             setIsPlaying(isYtPlaying)
