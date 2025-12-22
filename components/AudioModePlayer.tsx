@@ -81,9 +81,9 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     audio.addEventListener("playing", handlePlaying)
     audio.addEventListener("loadeddata", handleLoadedData)
 
-    // Check if audio is already ready
+    // Check if audio is already ready and has correct source
     // readyState: 0=HAVE_NOTHING, 1=HAVE_METADATA, 2=HAVE_CURRENT_DATA, 3=HAVE_FUTURE_DATA, 4=HAVE_ENOUGH_DATA
-    if (audio.readyState >= 2) {
+    if (audio.readyState >= 2 && audio.src) {
       setIsLoading(false)
     }
 

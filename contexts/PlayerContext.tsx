@@ -70,7 +70,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const wasPlayingBeforeHiddenRef = useRef(false)
 
-  // Media Session API setup
+  // Refs for Media Session handlers to access latest values without re-registering
+  const currentTimeRef = useRef(currentTime)
+  const isAudioModeRef = useRef(isAudioMode)
+  const youtubeControlsRef = useRef(youtubePlayerControls)
+
+  // Keep refs in sync
+  useEffect(() => {
+    currentTimeRef.current = currentTime
+  }, [currentTime])
+
+  useEffect(() => {
+    isAudioModeRef.current = isAudioMode
+  }, [isAudioMode])
+
+  useEffect(() => {
+    youtubeControlsRef.current = youtubePlayerControls
+  }, [youtubePlayerControls])
+
+  // Media Session API setup - only re-register when currentVideo changes
   useEffect(() => {
     if (!currentVideo || !("mediaSession" in navigator)) return
 
@@ -84,53 +102,59 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     })
 
     navigator.mediaSession.setActionHandler("play", () => {
-      if (isAudioMode && audioRef.current) {
-        // Only set isPlaying to true after play succeeds
-        audioRef.current.play()
+      const audio = audioRef.current
+      if (isAudioModeRef.current && audio) {
+        audio.play()
           .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false))
-      } else if (youtubePlayerControls) {
-        youtubePlayerControls.playVideo()
+          .catch((err) => {
+            console.error("Play failed:", err)
+            setIsPlaying(false)
+          })
+      } else if (youtubeControlsRef.current) {
+        youtubeControlsRef.current.playVideo()
         setIsPlaying(true)
       }
     })
 
     navigator.mediaSession.setActionHandler("pause", () => {
-      if (isAudioMode && audioRef.current) {
-        audioRef.current.pause()
-        // pause() is synchronous, state will be updated by pause event
-      } else if (youtubePlayerControls) {
-        youtubePlayerControls.pauseVideo()
+      const audio = audioRef.current
+      if (isAudioModeRef.current && audio) {
+        audio.pause()
+      } else if (youtubeControlsRef.current) {
+        youtubeControlsRef.current.pauseVideo()
         setIsPlaying(false)
       }
     })
 
     navigator.mediaSession.setActionHandler("seekbackward", () => {
-      const newTime = Math.max(0, currentTime - 10)
-      if (isAudioMode && audioRef.current) {
-        audioRef.current.currentTime = newTime
-      } else if (youtubePlayerControls) {
-        youtubePlayerControls.seekTo(newTime, true)
+      const audio = audioRef.current
+      const newTime = Math.max(0, currentTimeRef.current - 10)
+      if (isAudioModeRef.current && audio) {
+        audio.currentTime = newTime
+      } else if (youtubeControlsRef.current) {
+        youtubeControlsRef.current.seekTo(newTime, true)
       }
       setCurrentTime(newTime)
     })
 
     navigator.mediaSession.setActionHandler("seekforward", () => {
-      const newTime = currentTime + 10
-      if (isAudioMode && audioRef.current) {
-        audioRef.current.currentTime = newTime
-      } else if (youtubePlayerControls) {
-        youtubePlayerControls.seekTo(newTime, true)
+      const audio = audioRef.current
+      const newTime = currentTimeRef.current + 10
+      if (isAudioModeRef.current && audio) {
+        audio.currentTime = newTime
+      } else if (youtubeControlsRef.current) {
+        youtubeControlsRef.current.seekTo(newTime, true)
       }
       setCurrentTime(newTime)
     })
 
     navigator.mediaSession.setActionHandler("seekto", (details) => {
       if (details.seekTime !== undefined) {
-        if (isAudioMode && audioRef.current) {
-          audioRef.current.currentTime = details.seekTime
-        } else if (youtubePlayerControls) {
-          youtubePlayerControls.seekTo(details.seekTime, true)
+        const audio = audioRef.current
+        if (isAudioModeRef.current && audio) {
+          audio.currentTime = details.seekTime
+        } else if (youtubeControlsRef.current) {
+          youtubeControlsRef.current.seekTo(details.seekTime, true)
         }
         setCurrentTime(details.seekTime)
       }
@@ -143,7 +167,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.setActionHandler("seekforward", null)
       navigator.mediaSession.setActionHandler("seekto", null)
     }
-  }, [currentVideo, isAudioMode, currentTime, youtubePlayerControls])
+  }, [currentVideo])
 
   // Update position state for Media Session
   useEffect(() => {
@@ -301,6 +325,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [isPlaying, isAudioMode, youtubePlayerControls])
 
+  // Update audio source when audioUrl changes
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (audioUrl) {
+      // Only update src if it's different to avoid reloading
+      if (audio.src !== audioUrl) {
+        audio.src = audioUrl
+        audio.load()
+      }
+    } else {
+      // Clear the source
+      audio.src = ""
+      audio.load()
+    }
+  }, [audioUrl])
+
   // Sync audio element events with context state
   useEffect(() => {
     const audio = audioRef.current
@@ -417,13 +459,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       {children}
       {/*
         Single audio element for background playback
-        - Always rendered (not conditional) to maintain Media Session connection
-        - Uses key to force reload when audioUrl changes
+        - Always rendered to maintain Media Session connection
+        - No key prop to prevent element destruction on re-renders
       */}
       <audio
-        key={audioUrl || "empty"}
         ref={audioRef}
-        src={audioUrl || undefined}
         preload="auto"
         playsInline
       />
