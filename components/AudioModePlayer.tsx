@@ -38,57 +38,25 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     resume,
     seek,
     setCurrentTime,
-    setDuration,
-    setIsPlaying,
-    currentTime: contextCurrentTime,
+    currentTime,
+    duration,
   } = usePlayer()
 
-  const [localCurrentTime, setLocalCurrentTime] = useState(0)
-  const [localDuration, setLocalDuration] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [hasAudioSource, setHasAudioSource] = useState(false)
   const progressRef = useRef<HTMLDivElement>(null)
   const initialSeekDoneRef = useRef(false)
 
-  // Sync local state with context
+  // Handle loading state and initial seek
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    const handleTimeUpdate = () => {
-      const time = audio.currentTime
-      setLocalCurrentTime(time)
-      setCurrentTime(time)
-    }
-
-    const handleDurationChange = () => {
-      const dur = audio.duration || 0
-      setLocalDuration(dur)
-      setDuration(dur)
-    }
-
-    const handleEnded = () => {
-      pause()
-      setIsPlaying(false)
-    }
-
-    const handlePlay = () => {
-      setIsPlaying(true)
-      setIsLoading(false)
-    }
-
-    const handlePause = () => {
-      setIsPlaying(false)
-    }
-
     const handleCanPlay = () => {
       setIsLoading(false)
 
-      // Seek to context time if this is the first load and there's a saved position
-      if (!initialSeekDoneRef.current && contextCurrentTime > 0) {
-        initialSeekDoneRef.current = true
-        audio.currentTime = contextCurrentTime
-      }
+      // Auto-play when audio is ready
+      if (!audio.paused) return
+      audio.play().catch(console.error)
     }
 
     const handleWaiting = () => {
@@ -99,62 +67,49 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       setIsLoading(false)
     }
 
-    const handleLoadedData = () => {
-      setHasAudioSource(!!audio.src)
+    const handleLoadStart = () => {
+      setIsLoading(true)
     }
 
-    audio.addEventListener("timeupdate", handleTimeUpdate)
-    audio.addEventListener("durationchange", handleDurationChange)
-    audio.addEventListener("ended", handleEnded)
-    audio.addEventListener("play", handlePlay)
-    audio.addEventListener("pause", handlePause)
     audio.addEventListener("canplay", handleCanPlay)
     audio.addEventListener("waiting", handleWaiting)
     audio.addEventListener("playing", handlePlaying)
-    audio.addEventListener("loadeddata", handleLoadedData)
+    audio.addEventListener("loadstart", handleLoadStart)
 
-    // Initialize with current values
-    if (audio.duration) {
-      setLocalDuration(audio.duration)
-      setDuration(audio.duration)
+    // If audio is already ready
+    if (audio.readyState >= 3) {
+      setIsLoading(false)
     }
-    // Initialize source state
-    setHasAudioSource(!!audio.src)
 
     return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate)
-      audio.removeEventListener("durationchange", handleDurationChange)
-      audio.removeEventListener("ended", handleEnded)
-      audio.removeEventListener("play", handlePlay)
-      audio.removeEventListener("pause", handlePause)
       audio.removeEventListener("canplay", handleCanPlay)
       audio.removeEventListener("waiting", handleWaiting)
       audio.removeEventListener("playing", handlePlaying)
-      audio.removeEventListener("loadeddata", handleLoadedData)
+      audio.removeEventListener("loadstart", handleLoadStart)
     }
-  }, [audioRef, pause, setCurrentTime, setDuration, setIsPlaying, contextCurrentTime])
+  }, [audioRef, audioUrl])
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!progressRef.current || !localDuration) return
+    if (!progressRef.current || !duration) return
 
     const rect = progressRef.current.getBoundingClientRect()
     const x = e.clientX - rect.left
     const percentage = x / rect.width
-    const newTime = percentage * localDuration
+    const newTime = percentage * duration
     seek(newTime)
   }
 
   const handleSeekBackward = () => {
-    seek(Math.max(0, localCurrentTime - 10))
+    seek(Math.max(0, currentTime - 10))
   }
 
   const handleSeekForward = () => {
-    seek(Math.min(localDuration, localCurrentTime + 10))
+    seek(Math.min(duration, currentTime + 10))
   }
 
   const handleSwitchToVideo = () => {
     // Get current audio time to sync with video
-    const currentAudioTime = audioRef.current?.currentTime || localCurrentTime
+    const currentAudioTime = audioRef.current?.currentTime || currentTime
 
     // Pause audio before switching
     if (audioRef.current) {
@@ -170,7 +125,8 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
 
   if (!currentVideo) return null
 
-  const progress = localDuration > 0 ? (localCurrentTime / localDuration) * 100 : 0
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0
+  const hasAudioSource = !!audioUrl
 
   return (
     <div className="bg-[var(--card)] dark:bg-gradient-to-b dark:from-[#1a1a1a] dark:to-[#0f0f0f] rounded-xl p-6 md:p-8">
@@ -236,7 +192,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress)}
-            aria-valuetext={`${formatTime(localCurrentTime)} of ${formatTime(localDuration)}`}
+            aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
           >
             <div
               className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-100 relative"
@@ -252,8 +208,8 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
           </div>
           {/* Time display - Clear labels */}
           <div className="flex justify-between text-sm text-[var(--muted-foreground)] mt-2 font-mono">
-            <time aria-label="Current time">{formatTime(localCurrentTime)}</time>
-            <time aria-label="Total duration">{formatTime(localDuration)}</time>
+            <time aria-label="Current time">{formatTime(currentTime)}</time>
+            <time aria-label="Total duration">{formatTime(duration)}</time>
           </div>
         </div>
 
@@ -317,15 +273,6 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
         </p>
       </div>
 
-      {/* Hidden audio element */}
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          autoPlay={isPlaying}
-          preload="auto"
-        />
-      )}
     </div>
   )
 }

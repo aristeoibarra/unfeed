@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { usePlayer } from "@/contexts/PlayerContext"
 import Link from "next/link"
 
@@ -15,31 +14,12 @@ export function MiniPlayer() {
     currentVideo,
     isPlaying,
     isAudioMode,
-    audioRef,
-    audioUrl,
+    currentTime,
+    duration,
     pause,
     resume,
     stop,
   } = usePlayer()
-
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime)
-    const handleDurationChange = () => setDuration(audio.duration || 0)
-
-    audio.addEventListener("timeupdate", handleTimeUpdate)
-    audio.addEventListener("durationchange", handleDurationChange)
-
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate)
-      audio.removeEventListener("durationchange", handleDurationChange)
-    }
-  }, [audioRef])
 
   // Only show when in audio mode and have a video
   if (!currentVideo || !isAudioMode) {
@@ -50,15 +30,6 @@ export function MiniPlayer() {
 
   return (
     <>
-      {/* Hidden audio element for background playback */}
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          autoPlay={isPlaying}
-        />
-      )}
-
       {/* Fixed mini player at bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 shadow-lg">
         {/* Progress bar */}

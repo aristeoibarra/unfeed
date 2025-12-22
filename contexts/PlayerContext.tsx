@@ -254,6 +254,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     lastSavedProgressRef.current = 0
   }, [historyId, currentTime, duration])
 
+  // Sync audio element events with context state
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !isAudioMode) return
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime)
+    }
+
+    const handleDurationChange = () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration)
+      }
+    }
+
+    const handleEnded = () => {
+      setIsPlaying(false)
+    }
+
+    const handlePlay = () => {
+      setIsPlaying(true)
+    }
+
+    const handlePause = () => {
+      setIsPlaying(false)
+    }
+
+    audio.addEventListener("timeupdate", handleTimeUpdate)
+    audio.addEventListener("durationchange", handleDurationChange)
+    audio.addEventListener("ended", handleEnded)
+    audio.addEventListener("play", handlePlay)
+    audio.addEventListener("pause", handlePause)
+
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate)
+      audio.removeEventListener("durationchange", handleDurationChange)
+      audio.removeEventListener("ended", handleEnded)
+      audio.removeEventListener("play", handlePlay)
+      audio.removeEventListener("pause", handlePause)
+    }
+  }, [isAudioMode])
+
   return (
     <PlayerContext.Provider
       value={{
@@ -283,6 +325,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      {/* Single audio element for all audio playback */}
+      {audioUrl && isAudioMode && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="auto"
+        />
+      )}
     </PlayerContext.Provider>
   )
 }
