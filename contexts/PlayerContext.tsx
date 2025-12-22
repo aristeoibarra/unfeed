@@ -74,6 +74,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const currentTimeRef = useRef(currentTime)
   const isAudioModeRef = useRef(isAudioMode)
   const youtubeControlsRef = useRef(youtubePlayerControls)
+  const audioUrlRef = useRef(audioUrl)
 
   // Keep refs in sync
   useEffect(() => {
@@ -87,6 +88,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     youtubeControlsRef.current = youtubePlayerControls
   }, [youtubePlayerControls])
+
+  useEffect(() => {
+    audioUrlRef.current = audioUrl
+  }, [audioUrl])
 
   // Media Session API setup - only re-register when currentVideo changes
   useEffect(() => {
@@ -104,12 +109,26 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.setActionHandler("play", () => {
       const audio = audioRef.current
       if (isAudioModeRef.current && audio) {
-        audio.play()
-          .then(() => setIsPlaying(true))
-          .catch((err) => {
-            console.error("Play failed:", err)
-            setIsPlaying(false)
-          })
+        // Make sure audio has source loaded
+        if (!audio.src && audioUrlRef.current) {
+          audio.src = audioUrlRef.current
+          audio.load()
+        }
+
+        // Try to play
+        const playPromise = audio.play()
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true)
+              navigator.mediaSession.playbackState = "playing"
+            })
+            .catch((err) => {
+              console.error("Play failed:", err)
+              setIsPlaying(false)
+              navigator.mediaSession.playbackState = "paused"
+            })
+        }
       } else if (youtubeControlsRef.current) {
         youtubeControlsRef.current.playVideo()
         setIsPlaying(true)
@@ -120,6 +139,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const audio = audioRef.current
       if (isAudioModeRef.current && audio) {
         audio.pause()
+        setIsPlaying(false)
+        navigator.mediaSession.playbackState = "paused"
       } else if (youtubeControlsRef.current) {
         youtubeControlsRef.current.pauseVideo()
         setIsPlaying(false)
@@ -173,12 +194,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!("mediaSession" in navigator)) return
 
-    navigator.mediaSession.setPositionState({
-      duration: duration,
-      playbackRate: 1,
-      position: currentTime
-    })
+    // Only update if we have valid values to prevent errors
+    if (duration > 0 && currentTime >= 0 && currentTime <= duration) {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: duration,
+          playbackRate: 1,
+          position: Math.min(currentTime, duration)
+        })
+      } catch (e) {
+        // setPositionState can throw if values are invalid
+        console.error("setPositionState error:", e)
+      }
+    }
   }, [currentTime, duration])
+
+  // Update playback state for Media Session
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return
+
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused"
+  }, [isPlaying])
 
   // Auto-save progress every 10 seconds
   useEffect(() => {
