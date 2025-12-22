@@ -86,6 +86,7 @@ YOUTUBE_API_KEY=your_youtube_api_key
 AUTH_SECRET=your_session_secret
 AUTH_EMAIL=your@email.com
 AUTH_PASSWORD_HASH=your_password_hash
+CRON_SECRET=your_cron_secret_for_sync
 ```
 
 ## Configure YouTube API Key

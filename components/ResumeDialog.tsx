@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,43 +8,48 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Play, RotateCcw, Clock } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Clock, Play, RotateCcw } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ResumeDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onResume: () => void
-  onStartOver: () => void
-  progress: number // Progress in seconds
-  duration?: number | null // Total duration in seconds
+  isOpen: boolean;
+  onClose: () => void;
+  onResume: () => void;
+  onStartOver: () => void;
+  progress: number; // Progress in seconds
+  duration?: number | null; // Total duration in seconds
 }
 
 function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 }
 
-function calculatePercentage(progress: number, duration: number | null | undefined): number {
-  if (!duration || duration <= 0) return 0
-  return Math.min(100, Math.round((progress / duration) * 100))
+function calculatePercentage(
+  progress: number,
+  duration: number | null | undefined
+): number {
+  if (!duration || duration <= 0) return 0;
+  return Math.min(100, Math.round((progress / duration) * 100));
 }
 
 // Simplified version - returns null (kept for backward compatibility)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ResumeDialog(_props: ResumeDialogProps) {
-  return null
+  return null;
 }
 
 interface ResumeDialogFullProps extends ResumeDialogProps {
-  videoTitle?: string
+  videoTitle?: string;
 }
 
 export function ResumeDialogFull({
@@ -56,33 +61,33 @@ export function ResumeDialogFull({
   duration,
   videoTitle,
 }: ResumeDialogFullProps) {
-  const percentage = calculatePercentage(progress, duration)
-  const formattedProgress = formatTime(progress)
-  const formattedDuration = duration ? formatTime(duration) : null
+  const percentage = calculatePercentage(progress, duration);
+  const formattedProgress = formatTime(progress);
+  const formattedDuration = duration ? formatTime(duration) : null;
 
   // Ref for the primary action button to auto-focus
-  const resumeButtonRef = useRef<HTMLButtonElement>(null)
+  const resumeButtonRef = useRef<HTMLButtonElement>(null);
 
   // Auto-focus the resume button when dialog opens (TDA-friendly - clear primary action)
   useEffect(() => {
     if (isOpen && resumeButtonRef.current) {
       // Small delay to ensure dialog animation completes
       const timeoutId = setTimeout(() => {
-        resumeButtonRef.current?.focus()
-      }, 100)
-      return () => clearTimeout(timeoutId)
+        resumeButtonRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const handleResume = () => {
-    onResume()
-    onClose()
-  }
+    onResume();
+    onClose();
+  };
 
   const handleStartOver = () => {
-    onStartOver()
-    onClose()
-  }
+    onStartOver();
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -93,7 +98,10 @@ export function ResumeDialogFull({
         <DialogHeader className="space-y-3">
           {/* Icon and title - Clear visual hierarchy */}
           <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
-            <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            <Clock
+              className="h-6 w-6 text-blue-600 dark:text-blue-400"
+              aria-hidden="true"
+            />
           </div>
           <DialogTitle className="text-center text-xl">
             Continue watching?
@@ -114,7 +122,8 @@ export function ResumeDialogFull({
               </span>
               {formattedDuration && (
                 <span className="text-[var(--muted-foreground)]">
-                  {" "}of {formattedDuration}
+                  {" "}
+                  of {formattedDuration}
                 </span>
               )}
             </span>
@@ -165,5 +174,5 @@ export function ResumeDialogFull({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
