@@ -24,9 +24,14 @@ export async function getAudioUrl(videoId: string): Promise<string | null> {
   }
 
   try {
-    // Execute yt-dlp directly to get the audio stream URL
+    // Path to cookies file and yt-dlp binary
+    const cookiesPath = process.env.YT_DLP_COOKIES_PATH || "/home/ec2-user/cookies_youtube.txt"
+    const ytdlpPath = process.env.YT_DLP_PATH || "/home/ec2-user/.local/bin/yt-dlp"
+
+    // Execute yt-dlp directly to get the audio/video stream URL
+    // Using format 93 (360p mp4 with audio) as fallback since bestaudio may not be available
     const { stdout, stderr } = await execAsync(
-      `yt-dlp -f 'bestaudio[ext=m4a]/bestaudio' --get-url "https://youtube.com/watch?v=${videoId}"`,
+      `${ytdlpPath} --cookies "${cookiesPath}" -f 'bestaudio/93/best' --get-url "https://youtube.com/watch?v=${videoId}"`,
       {
         timeout: 30000, // 30 second timeout
         maxBuffer: 1024 * 1024, // 1MB buffer
