@@ -46,17 +46,13 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
   const progressRef = useRef<HTMLDivElement>(null)
   const initialSeekDoneRef = useRef(false)
 
-  // Handle loading state and initial seek
+  // Handle loading state only - playback is controlled by context
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
     const handleCanPlay = () => {
       setIsLoading(false)
-
-      // Auto-play when audio is ready
-      if (!audio.paused) return
-      audio.play().catch(console.error)
     }
 
     const handleWaiting = () => {
@@ -67,14 +63,9 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       setIsLoading(false)
     }
 
-    const handleLoadStart = () => {
-      setIsLoading(true)
-    }
-
     audio.addEventListener("canplay", handleCanPlay)
     audio.addEventListener("waiting", handleWaiting)
     audio.addEventListener("playing", handlePlaying)
-    audio.addEventListener("loadstart", handleLoadStart)
 
     // If audio is already ready
     if (audio.readyState >= 3) {
@@ -85,7 +76,6 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       audio.removeEventListener("canplay", handleCanPlay)
       audio.removeEventListener("waiting", handleWaiting)
       audio.removeEventListener("playing", handlePlaying)
-      audio.removeEventListener("loadstart", handleLoadStart)
     }
   }, [audioRef, audioUrl])
 

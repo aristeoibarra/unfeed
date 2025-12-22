@@ -281,11 +281,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setIsPlaying(false)
     }
 
+    const handleCanPlay = () => {
+      // Auto-play when audio is ready and isPlaying is true
+      if (isPlaying && audio.paused) {
+        audio.play().catch(console.error)
+      }
+    }
+
     audio.addEventListener("timeupdate", handleTimeUpdate)
     audio.addEventListener("durationchange", handleDurationChange)
     audio.addEventListener("ended", handleEnded)
     audio.addEventListener("play", handlePlay)
     audio.addEventListener("pause", handlePause)
+    audio.addEventListener("canplay", handleCanPlay)
+
+    // If audio is already ready, try to play
+    if (isPlaying && audio.paused && audio.readyState >= 3) {
+      audio.play().catch(console.error)
+    }
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate)
@@ -293,8 +306,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("ended", handleEnded)
       audio.removeEventListener("play", handlePlay)
       audio.removeEventListener("pause", handlePause)
+      audio.removeEventListener("canplay", handleCanPlay)
     }
-  }, [isAudioMode])
+  }, [isAudioMode, isPlaying])
 
   return (
     <PlayerContext.Provider
