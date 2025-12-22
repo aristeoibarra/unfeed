@@ -6,7 +6,7 @@ import { loadMoreVideos, type VideoInfo } from "@/actions/videos"
 
 interface VideoFeedProps {
   initialVideos: VideoInfo[]
-  initialPageTokens: Record<string, string | null>
+  initialHasMore: boolean
   watchedIds: Set<string>
   noteIds: Set<string>
   filterChannelIds?: string[]
@@ -14,33 +14,31 @@ interface VideoFeedProps {
 
 export function VideoFeed({
   initialVideos,
-  initialPageTokens,
+  initialHasMore,
   watchedIds,
   noteIds,
   filterChannelIds,
 }: VideoFeedProps) {
   const [videos, setVideos] = useState(initialVideos)
-  const [pageTokens, setPageTokens] = useState(initialPageTokens)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
 
   // Reset state when filter changes
   useEffect(() => {
     setVideos(initialVideos)
-    setPageTokens(initialPageTokens)
-  }, [initialVideos, initialPageTokens, filterChannelIds])
-
-  const hasMore = Object.values(pageTokens).some(token => token !== null)
+    setHasMore(initialHasMore)
+    setPage(1)
+  }, [initialVideos, initialHasMore, filterChannelIds])
 
   async function handleLoadMore() {
     setLoading(true)
-    const result = await loadMoreVideos(pageTokens, filterChannelIds)
+    const nextPage = page + 1
+    const result = await loadMoreVideos(filterChannelIds, nextPage)
 
-    // Filter out duplicates
-    const existingIds = new Set(videos.map(v => v.videoId))
-    const newVideos = result.videos.filter(v => !existingIds.has(v.videoId))
-
-    setVideos([...videos, ...newVideos])
-    setPageTokens(result.pageTokens)
+    setVideos([...videos, ...result.videos])
+    setHasMore(result.hasMore)
+    setPage(nextPage)
     setLoading(false)
   }
 
