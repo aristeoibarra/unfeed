@@ -5,6 +5,7 @@ import { getUnreadCount, getRecentNotifications } from "@/actions/notifications"
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { DesktopNav } from "@/components/DesktopNav";
+import { VideoSearch } from "@/components/VideoSearch";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -92,8 +93,9 @@ export default async function RootLayout({
                 {/* Center: Desktop navigation */}
                 <DesktopNav />
 
-                {/* Right: Notifications */}
+                {/* Right: Search + Notifications */}
                 <div className="flex items-center gap-2">
+                  <VideoSearch />
                   <NotificationBell
                     initialCount={unreadCount}
                     initialNotifications={recentNotifications}

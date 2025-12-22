@@ -128,7 +128,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
               onClick={() => handleMoveUp(video.videoId, index)}
               disabled={index === 0}
               className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Move up"
+              aria-label="Move up"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
@@ -138,7 +138,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
               onClick={() => handleMoveDown(video.videoId, index)}
               disabled={index === videos.length - 1}
               className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Move down"
+              aria-label="Move down"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -151,7 +151,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
             onClick={() => handleRemove(video.videoId)}
             disabled={removingId === video.videoId}
             className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-50"
-            title="Remove from playlist"
+            aria-label="Remove from playlist"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

@@ -68,6 +68,12 @@ body {
   outline-offset: 2px;
 }
 
+/* Remove focus ring from cmdk input */
+[cmdk-input]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   *,

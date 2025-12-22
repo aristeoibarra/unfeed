@@ -107,6 +107,7 @@ export function MiniPlayer() {
               <button
                 onClick={isPlaying ? pause : resume}
                 className="p-2 text-white hover:text-blue-400 transition-colors"
+                aria-label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
@@ -123,7 +124,7 @@ export function MiniPlayer() {
               <button
                 onClick={stop}
                 className="p-2 text-gray-400 hover:text-white transition-colors"
-                title="Cerrar"
+                aria-label="Close player"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

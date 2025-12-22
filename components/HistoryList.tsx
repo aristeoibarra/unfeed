@@ -135,7 +135,7 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
         onClick={handleRemove}
         disabled={removing}
         className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity self-center"
-        title="Remove from history"
+        aria-label="Remove from history"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
