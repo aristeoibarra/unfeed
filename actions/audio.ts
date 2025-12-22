@@ -1,12 +1,16 @@
 "use server"
 
+import { exec } from "child_process"
+import { promisify } from "util"
+
+const execAsync = promisify(exec)
+
 // Validate YouTube video ID format (11 alphanumeric characters with hyphens and underscores)
 const VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/
 
 /**
- * Get audio URL for a YouTube video using the internal API Route
+ * Get audio URL for a YouTube video using yt-dlp directly
  *
- * The API Route (/api/audio/[videoId]) uses yt-dlp to extract the audio stream URL.
  * This requires yt-dlp to be installed on the server.
  *
  * @param videoId - YouTube video ID (11 characters)
@@ -20,37 +24,25 @@ export async function getAudioUrl(videoId: string): Promise<string | null> {
   }
 
   try {
-    // Get the base URL for the API
-    // In development, this will be localhost
-    // In production, this should be the app's URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.VERCEL_URL ||
-      "http://localhost:3000"
+    // Execute yt-dlp directly to get the audio stream URL
+    const { stdout, stderr } = await execAsync(
+      `yt-dlp -f 'bestaudio[ext=m4a]/bestaudio' --get-url "https://youtube.com/watch?v=${videoId}"`,
+      {
+        timeout: 30000, // 30 second timeout
+        maxBuffer: 1024 * 1024, // 1MB buffer
+      }
+    )
 
-    // Ensure the URL has a protocol
-    const url = baseUrl.startsWith("http")
-      ? baseUrl
-      : `https://${baseUrl}`
+    const audioUrl = stdout.trim()
 
-    const response = await fetch(`${url}/api/audio/${videoId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // Don't cache audio URLs as they expire
-      cache: "no-store",
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.error("Failed to get audio URL:", response.status, errorData)
+    if (!audioUrl) {
+      console.error("yt-dlp stderr:", stderr)
       return null
     }
 
-    const data = await response.json()
-    return data.url || null
+    return audioUrl
   } catch (error) {
-    console.error("Error fetching audio URL:", error)
+    console.error("Error executing yt-dlp:", error)
     return null
   }
 }
