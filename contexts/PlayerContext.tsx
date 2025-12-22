@@ -259,13 +259,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     lastSavedProgressRef.current = 0
   }, [historyId, currentTime, duration])
 
-  // Update Media Session playback state
-  useEffect(() => {
-    if (!("mediaSession" in navigator)) return
-
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused"
-  }, [isPlaying])
-
   // Handle page visibility changes (phone sleep/wake, tab switching)
   // IMPORTANT: In audio mode, we let audio continue playing in background
   useEffect(() => {
@@ -311,34 +304,61 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // Sync audio element events with context state
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio || !isAudioMode) return
+    if (!audio) return
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime)
+      // Only update time if we're in audio mode
+      if (isAudioMode) {
+        setCurrentTime(audio.currentTime)
+      }
     }
 
     const handleDurationChange = () => {
-      if (audio.duration && !isNaN(audio.duration)) {
+      if (isAudioMode && audio.duration && !isNaN(audio.duration)) {
         setDuration(audio.duration)
       }
     }
 
     const handleEnded = () => {
-      setIsPlaying(false)
+      if (isAudioMode) {
+        setIsPlaying(false)
+        // Update Media Session
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused"
+        }
+      }
     }
 
     const handlePlay = () => {
-      setIsPlaying(true)
+      if (isAudioMode) {
+        setIsPlaying(true)
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing"
+        }
+      }
     }
 
     const handlePause = () => {
-      setIsPlaying(false)
+      if (isAudioMode) {
+        setIsPlaying(false)
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused"
+        }
+      }
     }
 
     const handleCanPlay = () => {
       // Auto-play when audio is ready and isPlaying is true
-      if (isPlaying && audio.paused) {
+      if (isAudioMode && isPlaying && audio.paused) {
         audio.play().catch(console.error)
+      }
+    }
+
+    // Handle errors - important for debugging background playback issues
+    const handleError = (e: Event) => {
+      console.error("Audio error:", e)
+      if (isAudioMode) {
+        setIsPlaying(false)
       }
     }
 
@@ -348,9 +368,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     audio.addEventListener("play", handlePlay)
     audio.addEventListener("pause", handlePause)
     audio.addEventListener("canplay", handleCanPlay)
+    audio.addEventListener("error", handleError)
 
     // If audio is already ready, try to play
-    if (isPlaying && audio.paused && audio.readyState >= 3) {
+    if (isAudioMode && isPlaying && audio.paused && audio.readyState >= 3) {
       audio.play().catch(console.error)
     }
 
@@ -361,6 +382,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("play", handlePlay)
       audio.removeEventListener("pause", handlePause)
       audio.removeEventListener("canplay", handleCanPlay)
+      audio.removeEventListener("error", handleError)
     }
   }, [isAudioMode, isPlaying])
 
@@ -393,14 +415,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      {/* Single audio element for all audio playback */}
-      {audioUrl && isAudioMode && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          preload="auto"
-        />
-      )}
+      {/*
+        Single audio element for background playback
+        - Always rendered (not conditional) to maintain Media Session connection
+        - Uses key attributes for better background playback on Android
+      */}
+      <audio
+        ref={audioRef}
+        src={audioUrl || undefined}
+        preload="auto"
+        playsInline
+        crossOrigin="anonymous"
+      />
     </PlayerContext.Provider>
   )
 }
