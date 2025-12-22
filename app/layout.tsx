@@ -9,6 +9,8 @@ import { DesktopNav } from "@/components/DesktopNav";
 import { VideoSearch } from "@/components/VideoSearch";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { Providers } from "@/components/Providers";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { ConditionalMain } from "@/components/ConditionalMain";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -79,50 +81,48 @@ export default async function RootLayout({
             </a>
 
             {/* Header - Fixed with safe area insets for PWA */}
-            <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60 safe-top">
-              <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                {/* Left: Mobile menu + Logo */}
-                <div className="flex items-center gap-3">
-                  <MobileNav />
-                  <Link
-                    href="/"
-                    className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
-                    aria-label="Unfeed - Go to home"
-                  >
-                    Unfeed
-                  </Link>
-                </div>
+            <ConditionalHeader>
+              <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60 safe-top">
+                <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                  {/* Left: Mobile menu + Logo */}
+                  <div className="flex items-center gap-3">
+                    <MobileNav />
+                    <Link
+                      href="/"
+                      className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                      aria-label="Unfeed - Go to home"
+                    >
+                      Unfeed
+                    </Link>
+                  </div>
 
-                {/* Center: Desktop navigation */}
-                <DesktopNav />
+                  {/* Center: Desktop navigation */}
+                  <DesktopNav />
 
-                {/* Right: Search + Notifications + Logout */}
-                <div className="flex items-center gap-2">
-                  <VideoSearch />
-                  <NotificationBell
-                    initialCount={unreadCount}
-                    initialNotifications={recentNotifications}
-                  />
-                  {session && (
-                    <div className="flex items-center gap-3 ml-2 pl-2 border-l border-[var(--border)]">
-                      <span className="hidden md:inline text-sm text-[var(--muted-foreground)] truncate max-w-[120px]">
-                        {session.email}
-                      </span>
-                      <LogoutButton />
-                    </div>
-                  )}
+                  {/* Right: Search + Notifications + Logout */}
+                  <div className="flex items-center gap-2">
+                    <VideoSearch />
+                    <NotificationBell
+                      initialCount={unreadCount}
+                      initialNotifications={recentNotifications}
+                    />
+                    {session && (
+                      <div className="flex items-center gap-3 ml-2 pl-2 border-l border-[var(--border)]">
+                        <span className="hidden md:inline text-sm text-[var(--muted-foreground)] truncate max-w-[120px]">
+                          {session.email}
+                        </span>
+                        <LogoutButton />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </header>
+              </header>
+            </ConditionalHeader>
 
             {/* Main content */}
-            <main
-              id="main-content"
-              className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] safe-bottom"
-              tabIndex={-1}
-            >
+            <ConditionalMain>
               {children}
-            </main>
+            </ConditionalMain>
 
             {/* Toast notifications */}
             <Toaster />

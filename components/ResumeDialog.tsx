@@ -38,12 +38,8 @@ function calculatePercentage(progress: number, duration: number | null | undefin
 }
 
 // Simplified version - returns null (kept for backward compatibility)
-export function ResumeDialog({
-  isOpen,
-  onClose,
-  onResume,
-  onStartOver,
-}: ResumeDialogProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ResumeDialog(_props: ResumeDialogProps) {
   return null
 }
 

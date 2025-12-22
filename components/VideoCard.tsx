@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { ThumbsUp, StickyNote, Eye, Clock, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -99,12 +100,13 @@ export function VideoCard({
       <article className="space-y-3">
         {/* Thumbnail container */}
         <div className="relative aspect-video overflow-hidden rounded-xl bg-[var(--muted)]">
-          <img
+          <Image
             src={thumbnail}
             alt=""
-            loading="lazy"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className={cn(
-              "w-full h-full object-cover transition-all duration-200",
+              "object-cover transition-all duration-200",
               "group-hover:scale-[1.02]",
               (isWatched || completed) && "opacity-70"
             )}

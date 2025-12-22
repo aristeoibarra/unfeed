@@ -46,6 +46,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
   const [localCurrentTime, setLocalCurrentTime] = useState(0)
   const [localDuration, setLocalDuration] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasAudioSource, setHasAudioSource] = useState(false)
   const progressRef = useRef<HTMLDivElement>(null)
   const initialSeekDoneRef = useRef(false)
 
@@ -98,6 +99,10 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       setIsLoading(false)
     }
 
+    const handleLoadedData = () => {
+      setHasAudioSource(!!audio.src)
+    }
+
     audio.addEventListener("timeupdate", handleTimeUpdate)
     audio.addEventListener("durationchange", handleDurationChange)
     audio.addEventListener("ended", handleEnded)
@@ -106,12 +111,15 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     audio.addEventListener("canplay", handleCanPlay)
     audio.addEventListener("waiting", handleWaiting)
     audio.addEventListener("playing", handlePlaying)
+    audio.addEventListener("loadeddata", handleLoadedData)
 
     // Initialize with current values
     if (audio.duration) {
       setLocalDuration(audio.duration)
       setDuration(audio.duration)
     }
+    // Initialize source state
+    setHasAudioSource(!!audio.src)
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate)
@@ -122,6 +130,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       audio.removeEventListener("canplay", handleCanPlay)
       audio.removeEventListener("waiting", handleWaiting)
       audio.removeEventListener("playing", handlePlaying)
+      audio.removeEventListener("loadeddata", handleLoadedData)
     }
   }, [audioRef, pause, setCurrentTime, setDuration, setIsPlaying, contextCurrentTime])
 
@@ -264,7 +273,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
           {/* Play/Pause - Primary action, most prominent */}
           <Button
             onClick={isPlaying ? pause : resume}
-            disabled={isLoading && !audioRef.current?.src}
+            disabled={isLoading && !hasAudioSource}
             className={cn(
               "h-16 w-16 rounded-full shadow-lg",
               "bg-blue-600 hover:bg-blue-700 text-white",
