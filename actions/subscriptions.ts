@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import { getChannelInfo } from "@/lib/youtube"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { deepSync } from "./sync"
 
 const urlSchema = z.string().url().refine(
   (url) => url.includes("youtube.com") || url.includes("youtu.be"),
@@ -15,18 +16,22 @@ type ActionResult<T> =
   | { success: false; error: string }
 
 export async function getSubscriptions() {
+  // Solo canales activos (no eliminados)
   return prisma.subscription.findMany({
+    where: { deletedAt: null },
+    include: { category: true },
     orderBy: { createdAt: "desc" }
   })
 }
 
 export async function getSubscription(channelId: string) {
   return prisma.subscription.findUnique({
-    where: { channelId }
+    where: { channelId },
+    include: { category: true }
   })
 }
 
-export async function addSubscription(url: string): Promise<ActionResult<{ id: number }>> {
+export async function addSubscription(url: string): Promise<ActionResult<{ id: number; reactivated?: boolean }>> {
   const validation = urlSchema.safeParse(url)
   if (!validation.success) {
     return { success: false, error: validation.error.issues[0].message }
@@ -38,21 +43,51 @@ export async function addSubscription(url: string): Promise<ActionResult<{ id: n
       return { success: false, error: "Could not find channel" }
     }
 
+    // Buscar si existe (incluyendo eliminados)
     const existing = await prisma.subscription.findUnique({
       where: { channelId: channelInfo.channelId }
     })
 
     if (existing) {
-      return { success: false, error: "Already subscribed" }
+      if (existing.deletedAt) {
+        // Reactivar canal eliminado (soft delete)
+        await prisma.subscription.update({
+          where: { channelId: channelInfo.channelId },
+          data: {
+            deletedAt: null,
+            // Actualizar nombre/thumbnail en caso de que hayan cambiado
+            name: channelInfo.name,
+            thumbnail: channelInfo.thumbnail
+          }
+        })
+
+        revalidatePath("/")
+        revalidatePath("/subscriptions")
+
+        // No necesita Deep Sync, ya tiene videos en caché
+        return { success: true, data: { id: existing.id, reactivated: true } }
+      } else {
+        // Ya está activo
+        return { success: false, error: "Already subscribed" }
+      }
     }
 
+    // Crear nuevo + SyncStatus inicial
     const subscription = await prisma.subscription.create({
       data: {
         channelId: channelInfo.channelId,
         name: channelInfo.name,
         thumbnail: channelInfo.thumbnail,
+        syncStatus: {
+          create: {
+            status: "pending"
+          }
+        }
       }
     })
+
+    // Ejecutar Deep Sync en background (no bloqueamos la respuesta)
+    deepSync(channelInfo.channelId).catch(console.error)
 
     revalidatePath("/")
     revalidatePath("/subscriptions")
@@ -64,9 +99,13 @@ export async function addSubscription(url: string): Promise<ActionResult<{ id: n
   }
 }
 
+// Soft delete: Marca como eliminado pero no borra datos
 export async function deleteSubscription(id: number): Promise<ActionResult<null>> {
   try {
-    await prisma.subscription.delete({ where: { id } })
+    await prisma.subscription.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    })
 
     revalidatePath("/")
     revalidatePath("/subscriptions")
@@ -74,6 +113,33 @@ export async function deleteSubscription(id: number): Promise<ActionResult<null>
     return { success: true, data: null }
   } catch (error) {
     console.error("Error deleting subscription:", error)
+    return { success: false, error: "Failed to delete subscription" }
+  }
+}
+
+// Hard delete: Borra completamente (para limpieza manual)
+export async function hardDeleteSubscription(id: number): Promise<ActionResult<null>> {
+  try {
+    const subscription = await prisma.subscription.findUnique({ where: { id } })
+    if (!subscription) {
+      return { success: false, error: "Subscription not found" }
+    }
+
+    // Borrar videos del canal
+    await prisma.video.deleteMany({ where: { channelId: subscription.channelId } })
+
+    // Borrar sync status
+    await prisma.syncStatus.deleteMany({ where: { channelId: subscription.channelId } })
+
+    // Borrar suscripción
+    await prisma.subscription.delete({ where: { id } })
+
+    revalidatePath("/")
+    revalidatePath("/subscriptions")
+
+    return { success: true, data: null }
+  } catch (error) {
+    console.error("Error hard deleting subscription:", error)
     return { success: false, error: "Failed to delete subscription" }
   }
 }

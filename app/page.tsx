@@ -1,11 +1,12 @@
 import { getSubscriptions } from "@/actions/subscriptions"
+import { getCategories } from "@/actions/categories"
 import { getVideoIdsWithNotes } from "@/actions/notes"
 import { getVideos } from "@/actions/videos"
 import { getWatchedVideoIds } from "@/actions/watched"
-import { getSyncStatus } from "@/actions/sync"
+import { getReactions, getDislikedVideoIds } from "@/actions/reactions"
+import { getSettings } from "@/actions/settings"
 import { SubscriptionFilter } from "@/components/SubscriptionFilter"
 import { VideoFeed } from "@/components/VideoFeed"
-import { SyncButton } from "@/components/SyncButton"
 import Link from "next/link"
 
 interface HomeProps {
@@ -16,13 +17,28 @@ export default async function Home({ searchParams }: HomeProps) {
   const { channels } = await searchParams
   const filterChannelIds = channels ? channels.split(",") : undefined
 
-  const [result, watchedIds, noteIds, subscriptions, syncStatus] = await Promise.all([
+  const [result, watchedIds, noteIds, subscriptions, categories, settings] = await Promise.all([
     getVideos(filterChannelIds),
     getWatchedVideoIds(),
     getVideoIdsWithNotes(),
     getSubscriptions(),
-    getSyncStatus()
+    getCategories(),
+    getSettings()
   ])
+
+  // Filter out disliked videos if setting is enabled
+  let videosToShow = result.videos
+  let dislikedIds: string[] = []
+
+  if (settings.hideDislikedFromFeed) {
+    dislikedIds = await getDislikedVideoIds()
+    const dislikedSet = new Set(dislikedIds)
+    videosToShow = result.videos.filter(v => !dislikedSet.has(v.videoId))
+  }
+
+  // Get reactions for displayed videos
+  const videoIds = videosToShow.map(v => v.videoId)
+  const reactions = await getReactions(videoIds)
 
   const watchedSet = new Set(watchedIds)
   const noteSet = new Set(noteIds)
@@ -39,19 +55,14 @@ export default async function Home({ searchParams }: HomeProps) {
         </Link>
       </div>
 
-      <SyncButton
-        lastSyncedAt={syncStatus.lastSyncedAt}
-        cachedVideoCount={syncStatus.cachedVideoCount}
-      />
+      <SubscriptionFilter subscriptions={subscriptions} categories={categories} />
 
-      <SubscriptionFilter subscriptions={subscriptions} />
-
-      {result.videos.length === 0 ? (
+      {videosToShow.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {subscriptions.length === 0
               ? "No subscriptions yet. Add some channels to get started."
-              : "No videos cached. Click 'Sync Now' to fetch videos from your subscriptions."}
+              : "No videos yet. Videos will appear after the next sync."}
           </p>
           {subscriptions.length === 0 ? (
             <Link
@@ -64,10 +75,11 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       ) : (
         <VideoFeed
-          initialVideos={result.videos}
+          initialVideos={videosToShow}
           initialHasMore={result.hasMore}
           watchedIds={watchedSet}
           noteIds={noteSet}
+          reactions={reactions}
           filterChannelIds={filterChannelIds}
         />
       )}

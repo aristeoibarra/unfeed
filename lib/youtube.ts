@@ -14,6 +14,61 @@ export interface VideoInfo {
   channelId: string
   channelName: string
   publishedAt: string
+  // Campos expandidos
+  duration: number | null      // Duración en segundos
+  description: string | null
+  tags: string | null          // Tags separados por coma
+  category: string | null
+  viewCount: number | null
+  likeCount: number | null
+}
+
+// Parsea duración ISO 8601 (PT15M33S) a segundos
+function parseDuration(isoDuration: string): number {
+  const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
+  if (!match) return 0
+
+  const hours = parseInt(match[1] || "0", 10)
+  const minutes = parseInt(match[2] || "0", 10)
+  const seconds = parseInt(match[3] || "0", 10)
+
+  return hours * 3600 + minutes * 60 + seconds
+}
+
+// Mapa de IDs de categoría a nombres
+const CATEGORY_MAP: Record<string, string> = {
+  "1": "Film & Animation",
+  "2": "Autos & Vehicles",
+  "10": "Music",
+  "15": "Pets & Animals",
+  "17": "Sports",
+  "18": "Short Movies",
+  "19": "Travel & Events",
+  "20": "Gaming",
+  "21": "Videoblogging",
+  "22": "People & Blogs",
+  "23": "Comedy",
+  "24": "Entertainment",
+  "25": "News & Politics",
+  "26": "Howto & Style",
+  "27": "Education",
+  "28": "Science & Technology",
+  "29": "Nonprofits & Activism",
+  "30": "Movies",
+  "31": "Anime/Animation",
+  "32": "Action/Adventure",
+  "33": "Classics",
+  "34": "Comedy",
+  "35": "Documentary",
+  "36": "Drama",
+  "37": "Family",
+  "38": "Foreign",
+  "39": "Horror",
+  "40": "Sci-Fi/Fantasy",
+  "41": "Thriller",
+  "42": "Shorts",
+  "43": "Shows",
+  "44": "Trailers",
 }
 
 function extractChannelId(url: string): string | null {
@@ -104,9 +159,52 @@ export interface VideosResult {
   pageTokens: Record<string, string | null>
 }
 
+// Obtiene detalles expandidos de videos (duration, stats, etc.)
+// Costo: 1 unidad por cada 50 videos
+async function getVideoDetails(videoIds: string[]): Promise<Map<string, Partial<VideoInfo>>> {
+  if (!YOUTUBE_API_KEY || videoIds.length === 0) {
+    return new Map()
+  }
+
+  const details = new Map<string, Partial<VideoInfo>>()
+
+  // YouTube API permite hasta 50 IDs por request
+  const chunks = []
+  for (let i = 0; i < videoIds.length; i += 50) {
+    chunks.push(videoIds.slice(i, i + 50))
+  }
+
+  for (const chunk of chunks) {
+    const url = `${YOUTUBE_API_BASE}/videos?part=contentDetails,statistics,snippet&id=${chunk.join(",")}&key=${YOUTUBE_API_KEY}`
+    const res = await fetch(url)
+    const data = await res.json()
+
+    if (data.items) {
+      for (const item of data.items) {
+        details.set(item.id, {
+          duration: item.contentDetails?.duration ? parseDuration(item.contentDetails.duration) : null,
+          description: item.snippet?.description || null,
+          tags: item.snippet?.tags?.join(",") || null,
+          category: CATEGORY_MAP[item.snippet?.categoryId] || null,
+          viewCount: item.statistics?.viewCount ? parseInt(item.statistics.viewCount, 10) : null,
+          likeCount: item.statistics?.likeCount ? parseInt(item.statistics.likeCount, 10) : null,
+        })
+      }
+    }
+  }
+
+  return details
+}
+
+export interface GetChannelVideosOptions {
+  maxResults?: number  // Videos por página (default: 50)
+  pages?: number       // Número de páginas a obtener (default: 1)
+}
+
 export async function getChannelVideos(
   channelIds: string[],
-  pageTokens?: Record<string, string | null>
+  pageTokens?: Record<string, string | null>,
+  options?: GetChannelVideosOptions
 ): Promise<VideosResult> {
   if (!YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not configured")
@@ -114,41 +212,76 @@ export async function getChannelVideos(
 
   if (channelIds.length === 0) return { videos: [], pageTokens: {} }
 
-  const videos: VideoInfo[] = []
+  const maxResults = options?.maxResults ?? 50
+  const pages = options?.pages ?? 1
+  const basicVideos: Array<{
+    videoId: string
+    title: string
+    thumbnail: string
+    channelId: string
+    channelName: string
+    publishedAt: string
+  }> = []
   const nextPageTokens: Record<string, string | null> = {}
 
   for (const channelId of channelIds) {
-    const pageToken = pageTokens?.[channelId]
+    let currentPageToken = pageTokens?.[channelId]
 
     // Skip if we've reached the end for this channel
-    if (pageToken === null) {
+    if (currentPageToken === null) {
       nextPageTokens[channelId] = null
       continue
     }
 
-    let searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=12&key=${YOUTUBE_API_KEY}`
-    if (pageToken) {
-      searchUrl += `&pageToken=${pageToken}`
-    }
-
-    const res = await fetch(searchUrl)
-    const data = await res.json()
-
-    nextPageTokens[channelId] = data.nextPageToken || null
-
-    if (data.items) {
-      for (const item of data.items) {
-        videos.push({
-          videoId: item.id.videoId,
-          title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-          channelId: item.snippet.channelId,
-          channelName: item.snippet.channelTitle,
-          publishedAt: item.snippet.publishedAt,
-        })
+    // Obtener múltiples páginas si se solicita
+    for (let page = 0; page < pages; page++) {
+      let searchUrl = `${YOUTUBE_API_BASE}/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`
+      if (currentPageToken) {
+        searchUrl += `&pageToken=${currentPageToken}`
       }
+
+      const res = await fetch(searchUrl)
+      const data = await res.json()
+
+      currentPageToken = data.nextPageToken || null
+
+      if (data.items) {
+        for (const item of data.items) {
+          basicVideos.push({
+            videoId: item.id.videoId,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+            channelId: item.snippet.channelId,
+            channelName: item.snippet.channelTitle,
+            publishedAt: item.snippet.publishedAt,
+          })
+        }
+      }
+
+      // Si no hay más páginas, salir
+      if (!currentPageToken) break
     }
+
+    nextPageTokens[channelId] = currentPageToken ?? null
   }
+
+  // Obtener detalles expandidos de todos los videos
+  const videoIds = basicVideos.map(v => v.videoId)
+  const videoDetails = await getVideoDetails(videoIds)
+
+  // Combinar datos básicos con detalles expandidos
+  const videos: VideoInfo[] = basicVideos.map(video => {
+    const details = videoDetails.get(video.videoId) || {}
+    return {
+      ...video,
+      duration: details.duration ?? null,
+      description: details.description ?? null,
+      tags: details.tags ?? null,
+      category: details.category ?? null,
+      viewCount: details.viewCount ?? null,
+      likeCount: details.likeCount ?? null,
+    }
+  })
 
   // Sort by publish date (newest first)
   const sortedVideos = videos.sort((a, b) =>
@@ -163,7 +296,7 @@ export async function getVideoInfo(videoId: string): Promise<VideoInfo | null> {
     throw new Error("YOUTUBE_API_KEY is not configured")
   }
 
-  const url = `${YOUTUBE_API_BASE}/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`
+  const url = `${YOUTUBE_API_BASE}/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}`
   const res = await fetch(url)
   const data = await res.json()
 
@@ -177,5 +310,11 @@ export async function getVideoInfo(videoId: string): Promise<VideoInfo | null> {
     channelId: video.snippet.channelId,
     channelName: video.snippet.channelTitle,
     publishedAt: video.snippet.publishedAt,
+    duration: video.contentDetails?.duration ? parseDuration(video.contentDetails.duration) : null,
+    description: video.snippet?.description || null,
+    tags: video.snippet?.tags?.join(",") || null,
+    category: CATEGORY_MAP[video.snippet?.categoryId] || null,
+    viewCount: video.statistics?.viewCount ? parseInt(video.statistics.viewCount, 10) : null,
+    likeCount: video.statistics?.likeCount ? parseInt(video.statistics.likeCount, 10) : null,
   }
 }

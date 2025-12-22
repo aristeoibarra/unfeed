@@ -13,9 +13,49 @@ export interface CachedVideosResult {
   total: number
 }
 
+// Helper para obtener IDs de canales activos
+async function getActiveChannelIds(): Promise<string[]> {
+  const subscriptions = await prisma.subscription.findMany({
+    where: { deletedAt: null },
+    select: { channelId: true }
+  })
+  return subscriptions.map(s => s.channelId)
+}
+
+// Helper para formatear video de DB a VideoInfo
+function formatVideo(v: {
+  videoId: string
+  title: string
+  thumbnail: string
+  channelId: string
+  channelName: string
+  publishedAt: Date
+  duration: number | null
+  description: string | null
+  tags: string | null
+  category: string | null
+  viewCount: number | null
+  likeCount: number | null
+}): VideoInfo {
+  return {
+    videoId: v.videoId,
+    title: v.title,
+    thumbnail: v.thumbnail,
+    channelId: v.channelId,
+    channelName: v.channelName,
+    publishedAt: v.publishedAt.toISOString(),
+    duration: v.duration,
+    description: v.description,
+    tags: v.tags,
+    category: v.category,
+    viewCount: v.viewCount,
+    likeCount: v.likeCount
+  }
+}
+
 export async function getVideos(filterChannelIds?: string[], page: number = 1): Promise<CachedVideosResult> {
-  const subscriptions = await prisma.subscription.findMany()
-  let channelIds = subscriptions.map(s => s.channelId)
+  // Solo canales activos (no eliminados)
+  let channelIds = await getActiveChannelIds()
 
   if (filterChannelIds && filterChannelIds.length > 0) {
     channelIds = channelIds.filter(id => filterChannelIds.includes(id))
@@ -43,17 +83,8 @@ export async function getVideos(filterChannelIds?: string[], page: number = 1): 
     })
   ])
 
-  const formattedVideos: VideoInfo[] = videos.map(v => ({
-    videoId: v.videoId,
-    title: v.title,
-    thumbnail: v.thumbnail,
-    channelId: v.channelId,
-    channelName: v.channelName,
-    publishedAt: v.publishedAt.toISOString()
-  }))
-
   return {
-    videos: formattedVideos,
+    videos: videos.map(formatVideo),
     hasMore: skip + videos.length < total,
     total
   }
@@ -81,17 +112,8 @@ export async function getVideosByChannel(channelId: string, page: number = 1): P
     })
   ])
 
-  const formattedVideos: VideoInfo[] = videos.map(v => ({
-    videoId: v.videoId,
-    title: v.title,
-    thumbnail: v.thumbnail,
-    channelId: v.channelId,
-    channelName: v.channelName,
-    publishedAt: v.publishedAt.toISOString()
-  }))
-
   return {
-    videos: formattedVideos,
+    videos: videos.map(formatVideo),
     hasMore: skip + videos.length < total,
     total
   }
@@ -104,14 +126,7 @@ export async function getVideo(videoId: string): Promise<VideoInfo | null> {
   })
 
   if (cached) {
-    return {
-      videoId: cached.videoId,
-      title: cached.title,
-      thumbnail: cached.thumbnail,
-      channelId: cached.channelId,
-      channelName: cached.channelName,
-      publishedAt: cached.publishedAt.toISOString()
-    }
+    return formatVideo(cached)
   }
 
   // Fallback to YouTube API if not in cache

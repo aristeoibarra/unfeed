@@ -2,9 +2,9 @@ import { getSubscription } from "@/actions/subscriptions"
 import { getVideoIdsWithNotes } from "@/actions/notes"
 import { getVideosByChannel } from "@/actions/videos"
 import { getWatchedVideoIds } from "@/actions/watched"
+import { getReactions } from "@/actions/reactions"
 import { SubscriptionHeader } from "@/components/SubscriptionHeader"
 import { VideoFeed } from "@/components/VideoFeed"
-import { ChannelSyncButton } from "@/components/ChannelSyncButton"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -39,19 +39,20 @@ export default async function SubscriptionPage({ params }: SubscriptionPageProps
     notFound()
   }
 
+  const videoIds = result.videos.map(v => v.videoId)
+  const reactions = await getReactions(videoIds)
+
   const watchedSet = new Set(watchedIds)
   const noteSet = new Set(noteIds)
 
   return (
     <div className="space-y-6">
-      <SubscriptionHeader subscription={subscription} />
-
-      <ChannelSyncButton channelId={channelId} videoCount={result.total} />
+      <SubscriptionHeader subscription={subscription} videoCount={result.total} />
 
       {result.videos.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400">
-            No videos cached for this channel. Click &apos;Sync Channel&apos; to fetch videos.
+            No videos yet. Videos will appear after the next sync.
           </p>
         </div>
       ) : (
@@ -60,6 +61,7 @@ export default async function SubscriptionPage({ params }: SubscriptionPageProps
           initialHasMore={result.hasMore}
           watchedIds={watchedSet}
           noteIds={noteSet}
+          reactions={reactions}
           filterChannelIds={[channelId]}
         />
       )}

@@ -1,44 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { VideoCard } from "./VideoCard"
-import { loadMoreVideos, type VideoInfo } from "@/actions/videos"
+import { loadMoreLikedVideos } from "@/actions/reactions"
 
-type ReactionType = "like" | "dislike"
+interface VideoInfo {
+  videoId: string
+  title: string
+  thumbnail: string
+  channelId: string
+  channelName: string
+  publishedAt: string
+  duration: number | null
+}
 
-interface VideoFeedProps {
+interface LikedVideoFeedProps {
   initialVideos: VideoInfo[]
   initialHasMore: boolean
   watchedIds: Set<string>
   noteIds: Set<string>
-  reactions: Map<string, ReactionType>
-  filterChannelIds?: string[]
 }
 
-export function VideoFeed({
+export function LikedVideoFeed({
   initialVideos,
   initialHasMore,
   watchedIds,
   noteIds,
-  reactions,
-  filterChannelIds,
-}: VideoFeedProps) {
+}: LikedVideoFeedProps) {
   const [videos, setVideos] = useState(initialVideos)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  // Reset state when filter changes
-  useEffect(() => {
-    setVideos(initialVideos)
-    setHasMore(initialHasMore)
-    setPage(1)
-  }, [initialVideos, initialHasMore, filterChannelIds])
-
   async function handleLoadMore() {
     setLoading(true)
     const nextPage = page + 1
-    const result = await loadMoreVideos(filterChannelIds, nextPage)
+    const result = await loadMoreLikedVideos(nextPage)
 
     setVideos([...videos, ...result.videos])
     setHasMore(result.hasMore)
@@ -48,9 +45,14 @@ export function VideoFeed({
 
   if (videos.length === 0) {
     return (
-      <p className="text-center text-gray-500 py-8">
-        No videos yet. Add some channels to get started.
-      </p>
+      <div className="text-center py-12">
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
+          No liked videos yet.
+        </p>
+        <p className="text-sm text-gray-500">
+          Watch some videos and hit the Like button to see them here.
+        </p>
+      </div>
     )
   }
 
@@ -69,7 +71,6 @@ export function VideoFeed({
             duration={video.duration}
             isWatched={watchedIds.has(video.videoId)}
             hasNote={noteIds.has(video.videoId)}
-            reaction={reactions.get(video.videoId) ?? null}
           />
         ))}
       </div>

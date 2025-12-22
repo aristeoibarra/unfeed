@@ -7,12 +7,30 @@ datasource db {
   provider = "sqlite"
 }
 
+model Category {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  color     String?        // Color hex para UI (ej: "#3B82F6")
+  createdAt DateTime       @default(now())
+
+  subscriptions Subscription[]
+}
+
 model Subscription {
-  id        Int      @id @default(autoincrement())
-  channelId String   @unique
+  id        Int       @id @default(autoincrement())
+  channelId String    @unique
   name      String
   thumbnail String?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // null = activo, timestamp = eliminado (soft delete)
+
+  // Categoría (opcional)
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  syncStatus SyncStatus?
+
+  @@index([categoryId])
 }
 
 model WatchedVideo {
@@ -42,19 +60,124 @@ model VideoNote {
 model Video {
   id          Int      @id @default(autoincrement())
   videoId     String   @unique
+
+  // Datos básicos
   title       String
   thumbnail   String
   channelId   String
   channelName String
   publishedAt DateTime
+
+  // Datos expandidos
+  duration    Int?     // Duración en segundos (ej: 933 = 15:33)
+  description String?  // Descripción del video (para búsqueda)
+  tags        String?  // Tags separados por coma
+  category    String?  // Categoría (Education, Gaming, etc.)
+  viewCount   Int?     // Vistas al momento del sync
+  likeCount   Int?     // Likes al momento del sync
+
   cachedAt    DateTime @default(now())
 
   @@index([channelId])
-  @@index([publishedAt])
+  @@index([publishedAt(sort: Desc)])
+  @@index([duration])
 }
 
 model SyncStatus {
   id           Int      @id @default(autoincrement())
   channelId    String   @unique
   lastSyncedAt DateTime @default(now())
+  status       String   @default("pending") // "ok" | "error" | "pending" | "syncing"
+  errorMessage String?
+  videoCount   Int      @default(0) // Videos cacheados de este canal
+
+  subscription Subscription @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+}
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+
+  // Referencia al video
+  videoId     String
+  title       String
+  thumbnail   String
+  channelId   String
+  channelName String
+  duration    Int?
+
+  // Estado
+  isRead      Boolean   @default(false)
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  readAt      DateTime?
+
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+}
+
+model VideoReaction {
+  id        Int      @id @default(autoincrement())
+  videoId   String   @unique  // Un video = una reacción
+  type      String   // "like" | "dislike"
+  createdAt DateTime @default(now())
+
+  @@index([type])
+}
+
+model Settings {
+  id                    Int     @id @default(autoincrement())
+  hideDislikedFromFeed  Boolean @default(true)  // Ocultar videos con dislike del feed
+}
+
+model WatchHistory {
+  id          Int      @id @default(autoincrement())
+  videoId     String
+
+  // Datos del video (para mostrar sin JOIN)
+  title       String
+  thumbnail   String
+  channelId   String
+  channelName String
+  duration    Int?     // Duración total en segundos
+
+  // Datos de visualización
+  watchedAt   DateTime @default(now())
+  progress    Int?     // Segundos vistos (opcional)
+  completed   Boolean  @default(false) // Si vio >90%
+
+  @@index([videoId])
+  @@index([watchedAt(sort: Desc)])
+}
+
+model Playlist {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  videos      PlaylistVideo[]
+}
+
+model PlaylistVideo {
+  id          Int      @id @default(autoincrement())
+  playlistId  Int
+  videoId     String
+  position    Int      // Orden en la playlist
+
+  // Datos del video (para mostrar sin JOIN)
+  title       String
+  thumbnail   String
+  channelId   String
+  channelName String
+  duration    Int?
+
+  addedAt     DateTime @default(now())
+
+  playlist    Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, videoId]) // Un video solo una vez por playlist
+  @@index([playlistId])
+  @@index([position])
 }
