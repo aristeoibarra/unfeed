@@ -61,6 +61,7 @@ export function MobileNav() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:ring-offset-2",
                   isActive
                     ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"

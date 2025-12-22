@@ -7,7 +7,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { DesktopNav } from "@/components/DesktopNav";
 import { VideoSearch } from "@/components/VideoSearch";
-import { LogoutButton } from "@/components/auth/LogoutButton";
+import { UserMenu } from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
 import { ConditionalMain } from "@/components/ConditionalMain";
@@ -107,12 +107,7 @@ export default async function RootLayout({
                       initialNotifications={recentNotifications}
                     />
                     {session && (
-                      <div className="flex items-center gap-3 ml-2 pl-2 border-l border-[var(--border)]">
-                        <span className="hidden md:inline text-sm text-[var(--muted-foreground)] truncate max-w-[120px]">
-                          {session.email}
-                        </span>
-                        <LogoutButton />
-                      </div>
+                      <UserMenu email={session.email} />
                     )}
                   </div>
                 </div>
