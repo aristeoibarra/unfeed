@@ -7,6 +7,9 @@ import { getReactions, getDislikedVideoIds } from "@/actions/reactions"
 import { getSettings } from "@/actions/settings"
 import { SubscriptionFilter } from "@/components/SubscriptionFilter"
 import { VideoFeed } from "@/components/VideoFeed"
+import { EmptyState } from "@/components/ui/empty-state"
+import { Button } from "@/components/ui/button"
+import { Users, Plus } from "lucide-react"
 import Link from "next/link"
 
 interface HomeProps {
@@ -44,35 +47,52 @@ export default async function Home({ searchParams }: HomeProps) {
   const noteSet = new Set(noteIds)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Your Feed</h1>
-        <Link
-          href="/subscriptions"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          Manage subscriptions
-        </Link>
-      </div>
-
-      <SubscriptionFilter subscriptions={subscriptions} categories={categories} />
-
-      {videosToShow.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {subscriptions.length === 0
-              ? "No subscriptions yet. Add some channels to get started."
-              : "No videos yet. Videos will appear after the next sync."}
+    <div className="space-y-8">
+      {/* Page header - Clear hierarchy for TDA users */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Your Feed</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+            {subscriptions.length} subscription{subscriptions.length !== 1 ? "s" : ""}
+            {videosToShow.length > 0 && ` - ${videosToShow.length} video${videosToShow.length !== 1 ? "s" : ""}`}
           </p>
-          {subscriptions.length === 0 ? (
-            <Link
-              href="/subscriptions"
-              className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Add Subscriptions
-            </Link>
-          ) : null}
         </div>
+        <Link href="/subscriptions">
+          <Button variant="outline" size="sm">
+            <Users className="h-4 w-4" aria-hidden="true" />
+            Manage subscriptions
+          </Button>
+        </Link>
+      </header>
+
+      {/* Filter section - Only show if there are subscriptions */}
+      {subscriptions.length > 0 && (
+        <section aria-label="Filter videos">
+          <SubscriptionFilter subscriptions={subscriptions} categories={categories} />
+        </section>
+      )}
+
+      {/* Content section */}
+      {subscriptions.length === 0 ? (
+        <EmptyState
+          icon={<Users className="h-8 w-8" />}
+          title="No subscriptions yet"
+          description="Add some channels to start seeing their latest videos in your feed. No distractions, just the content you care about."
+          action={
+            <Link href="/subscriptions">
+              <Button>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Add your first subscription
+              </Button>
+            </Link>
+          }
+        />
+      ) : videosToShow.length === 0 ? (
+        <EmptyState
+          icon={<Users className="h-8 w-8" />}
+          title="No videos yet"
+          description="Videos will appear here after the next sync. This usually happens automatically every few hours."
+        />
       ) : (
         <VideoFeed
           initialVideos={videosToShow}

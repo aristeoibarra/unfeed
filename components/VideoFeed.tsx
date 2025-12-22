@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { VideoCard } from "./VideoCard"
+import { Loader2, RefreshCw, Video } from "lucide-react"
+import { VideoCard, VideoCardSkeleton } from "./VideoCard"
+import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { loadMoreVideos, type VideoInfo } from "@/actions/videos"
 
 type ReactionType = "like" | "dislike"
@@ -37,26 +40,39 @@ export function VideoFeed({
 
   async function handleLoadMore() {
     setLoading(true)
-    const nextPage = page + 1
-    const result = await loadMoreVideos(filterChannelIds, nextPage)
+    try {
+      const nextPage = page + 1
+      const result = await loadMoreVideos(filterChannelIds, nextPage)
 
-    setVideos([...videos, ...result.videos])
-    setHasMore(result.hasMore)
-    setPage(nextPage)
-    setLoading(false)
+      setVideos([...videos, ...result.videos])
+      setHasMore(result.hasMore)
+      setPage(nextPage)
+    } catch (error) {
+      console.error("Failed to load more videos:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (videos.length === 0) {
     return (
-      <p className="text-center text-gray-500 py-8">
-        No videos yet. Add some channels to get started.
-      </p>
+      <EmptyState
+        icon={<Video className="h-8 w-8" />}
+        title="No videos yet"
+        description="Add some channels to get started. Videos will appear here after the next sync."
+      />
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-8">
+      {/* Video grid - Responsive with TDA-friendly spacing */}
+      <div
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        role="feed"
+        aria-label="Video feed"
+        aria-busy={loading}
+      >
         {videos.map((video) => (
           <VideoCard
             key={video.videoId}
@@ -74,17 +90,46 @@ export function VideoFeed({
         ))}
       </div>
 
+      {/* Load more section */}
       {hasMore && (
-        <div className="flex justify-center">
-          <button
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Button
             onClick={handleLoadMore}
             disabled={loading}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50"
+            variant="outline"
+            size="lg"
+            className="min-w-[200px]"
           >
-            {loading ? "Loading..." : "Load more"}
-          </button>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Loading more...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Load more videos
+              </>
+            )}
+          </Button>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Showing {videos.length} videos
+          </p>
         </div>
       )}
+    </div>
+  )
+}
+
+// Loading skeleton for initial page load
+export function VideoFeedSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="space-y-8">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: count }).map((_, i) => (
+          <VideoCardSkeleton key={i} />
+        ))}
+      </div>
     </div>
   )
 }

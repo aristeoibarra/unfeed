@@ -1,5 +1,14 @@
+"use client"
+
 import Link from "next/link"
-import { WatchedBadge } from "./WatchedBadge"
+import { ThumbsUp, StickyNote, Eye, Clock } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 type ReactionType = "like" | "dislike" | null
 
@@ -10,13 +19,12 @@ interface VideoCardProps {
   channelName: string
   channelId?: string
   publishedAt: string
-  duration?: number | null  // Duración en segundos
+  duration?: number | null
   isWatched?: boolean
   hasNote?: boolean
   reaction?: ReactionType
 }
 
-// Formatea duración de segundos a MM:SS o H:MM:SS
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
@@ -26,65 +34,6 @@ function formatDuration(seconds: number): string {
     return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
   return `${minutes}:${secs.toString().padStart(2, "0")}`
-}
-
-export function VideoCard({ videoId, title, thumbnail, channelName, publishedAt, duration, isWatched, hasNote, reaction }: VideoCardProps) {
-  const timeAgo = getTimeAgo(publishedAt)
-
-  return (
-    <Link href={`/watch/${videoId}`} className="group">
-      <div className="space-y-2">
-        <div className="relative aspect-video overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-800">
-          <img
-            src={thumbnail}
-            alt={title}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ${isWatched ? "opacity-60" : ""}`}
-          />
-          {isWatched && <WatchedBadge />}
-          {hasNote && (
-            <div className="absolute top-2 left-2 p-1.5 bg-yellow-500 text-white rounded-full" title="Has notes">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-3.5 h-3.5"
-              >
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm6 6H7v2h6v-2z" clipRule="evenodd" />
-              </svg>
-            </div>
-          )}
-          {reaction === "like" && (
-            <div className="absolute top-2 right-2 p-1.5 bg-blue-600 text-white rounded-full" title="Liked">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-3.5 h-3.5"
-              >
-                <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0114 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 01-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 01-1.341-.317l-2.734-1.366A3 3 0 006.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 012.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388z" />
-              </svg>
-            </div>
-          )}
-          {duration != null && duration > 0 && (
-            <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 text-white text-xs font-medium rounded">
-              {formatDuration(duration)}
-            </div>
-          )}
-        </div>
-        <div className="space-y-1">
-          <h3 className="font-medium line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-            {title}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {channelName}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            {timeAgo}
-          </p>
-        </div>
-      </div>
-    </Link>
-  )
 }
 
 function getTimeAgo(dateString: string): string {
@@ -109,4 +58,122 @@ function getTimeAgo(dateString: string): string {
   }
 
   return "Just now"
+}
+
+export function VideoCard({
+  videoId,
+  title,
+  thumbnail,
+  channelName,
+  publishedAt,
+  duration,
+  isWatched,
+  hasNote,
+  reaction
+}: VideoCardProps) {
+  const timeAgo = getTimeAgo(publishedAt)
+
+  return (
+    <Link
+      href={`/watch/${videoId}`}
+      className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+      aria-label={`Watch ${title} by ${channelName}, published ${timeAgo}${isWatched ? ", already watched" : ""}`}
+    >
+      <article className="space-y-3">
+        {/* Thumbnail container */}
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
+          <img
+            src={thumbnail}
+            alt=""
+            loading="lazy"
+            className={cn(
+              "w-full h-full object-cover transition-all duration-200",
+              "group-hover:scale-[1.02]",
+              isWatched && "opacity-70"
+            )}
+          />
+
+          {/* Watched overlay */}
+          {isWatched && (
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+              <Badge
+                variant="secondary"
+                className="bg-black/70 text-white border-0 gap-1"
+              >
+                <Eye className="h-3 w-3" aria-hidden="true" />
+                Watched
+              </Badge>
+            </div>
+          )}
+
+          {/* Status indicators - Top left */}
+          <div className="absolute top-2 left-2 flex gap-1.5">
+            {hasNote && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="p-1.5 bg-yellow-500 text-white rounded-lg shadow-sm">
+                    <StickyNote className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="sr-only">Has notes</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Has notes</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+
+          {/* Reaction indicator - Top right */}
+          {reaction === "like" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute top-2 right-2 p-1.5 bg-blue-600 text-white rounded-lg shadow-sm">
+                  <ThumbsUp className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="sr-only">Liked</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>Liked</TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Duration badge - Bottom right */}
+          {duration != null && duration > 0 && (
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/80 text-white text-xs font-medium rounded-md">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              <time dateTime={`PT${duration}S`}>{formatDuration(duration)}</time>
+            </div>
+          )}
+
+          {/* Hover overlay for better interactivity feedback */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200 pointer-events-none" />
+        </div>
+
+        {/* Video info */}
+        <div className="space-y-1.5 px-1">
+          <h3 className="font-medium leading-snug line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            {title}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {channelName}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500">
+            <time dateTime={publishedAt}>{timeAgo}</time>
+          </p>
+        </div>
+      </article>
+    </Link>
+  )
+}
+
+// Skeleton for loading state
+export function VideoCardSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="aspect-video rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
+      <div className="space-y-2 px-1">
+        <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+        <div className="h-3 w-1/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+      </div>
+    </div>
+  )
 }

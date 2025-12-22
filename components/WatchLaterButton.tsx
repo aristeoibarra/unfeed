@@ -3,6 +3,14 @@
 import { toggleWatchLater } from "@/actions/watch-later"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Clock, Loader2, Check } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface WatchLaterButtonProps {
   video: {
@@ -18,6 +26,7 @@ interface WatchLaterButtonProps {
 
 export function WatchLaterButton({ video, isInWatchLater: initial, variant = "button" }: WatchLaterButtonProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [isInWatchLater, setIsInWatchLater] = useState(initial)
   const [loading, setLoading] = useState(false)
 
@@ -26,63 +35,84 @@ export function WatchLaterButton({ video, isInWatchLater: initial, variant = "bu
     e.stopPropagation()
 
     setLoading(true)
-    const newState = await toggleWatchLater(video)
-    setIsInWatchLater(newState)
-    router.refresh()
-    setLoading(false)
+    const previousState = isInWatchLater
+    setIsInWatchLater(!isInWatchLater)
+
+    try {
+      const newState = await toggleWatchLater(video)
+      setIsInWatchLater(newState)
+      toast({
+        title: newState ? "Added to Watch Later" : "Removed from Watch Later",
+        description: newState
+          ? "You can find this video in your Watch Later list."
+          : "This video has been removed from Watch Later.",
+      })
+      router.refresh()
+    } catch (error) {
+      setIsInWatchLater(previousState)
+      toast({
+        title: "Error",
+        description: "Failed to update Watch Later.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (variant === "icon") {
     return (
-      <button
-        onClick={handleToggle}
-        disabled={loading}
-        className={`p-2 rounded-full transition-colors ${
-          isInWatchLater
-            ? "bg-blue-600 text-white"
-            : "bg-black/50 text-white hover:bg-black/70"
-        } disabled:opacity-50`}
-        title={isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="w-4 h-4"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleToggle}
+            disabled={loading}
+            className={`p-2 rounded-full transition-all duration-150 ${
+              isInWatchLater
+                ? "bg-blue-600 text-white"
+                : "bg-black/50 text-white hover:bg-black/70"
+            } disabled:opacity-50`}
+            aria-label={isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isInWatchLater ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Clock className="h-4 w-4" />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
+        </TooltipContent>
+      </Tooltip>
     )
   }
 
   return (
-    <button
-      onClick={handleToggle}
-      disabled={loading}
-      className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-        isInWatchLater
-          ? "bg-blue-600 text-white hover:bg-blue-700"
-          : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-      } disabled:opacity-50`}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        className="w-4 h-4"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
-          clipRule="evenodd"
-        />
-      </svg>
-      {loading ? "..." : isInWatchLater ? "Saved" : "Watch Later"}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={handleToggle}
+          disabled={loading}
+          variant={isInWatchLater ? "default" : "secondary"}
+          size="sm"
+          aria-label={isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Clock className="h-4 w-4" aria-hidden="true" />
+          )}
+          <span className="hidden sm:inline">
+            {loading ? "..." : isInWatchLater ? "Saved" : "Watch Later"}
+          </span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
+      </TooltipContent>
+    </Tooltip>
   )
 }

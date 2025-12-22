@@ -3,7 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { getUnreadCount, getRecentNotifications } from "@/actions/notifications";
 import { NotificationBell } from "@/components/NotificationBell";
+import { MobileNav } from "@/components/MobileNav";
+import { DesktopNav } from "@/components/DesktopNav";
 import { Providers } from "@/components/Providers";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +46,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({
@@ -55,57 +60,60 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang="en">
+    <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >
         <Providers>
-          <header className="border-b border-gray-200 dark:border-gray-800">
-            <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-              <Link href="/" className="text-xl font-bold">
-                Unfeed
-              </Link>
-              <div className="flex items-center gap-6">
-                <Link
-                  href="/history"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                >
-                  History
-                </Link>
-                <Link
-                  href="/liked"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                >
-                  Liked
-                </Link>
-                <Link
-                  href="/playlists"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                >
-                  Playlists
-                </Link>
-                <Link
-                  href="/watch-later"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                >
-                  Watch Later
-                </Link>
-                <Link
-                  href="/subscriptions"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                >
-                  Subscriptions
-                </Link>
-                <NotificationBell
-                  initialCount={unreadCount}
-                  initialNotifications={recentNotifications}
-                />
+          <TooltipProvider delayDuration={300}>
+            {/* Skip to main content link for accessibility */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
+            >
+              Skip to main content
+            </a>
+
+            {/* Header - Fixed with safe area insets for PWA */}
+            <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60 safe-top">
+              <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                {/* Left: Mobile menu + Logo */}
+                <div className="flex items-center gap-3">
+                  <MobileNav />
+                  <Link
+                    href="/"
+                    className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                    aria-label="Unfeed - Go to home"
+                  >
+                    Unfeed
+                  </Link>
+                </div>
+
+                {/* Center: Desktop navigation */}
+                <DesktopNav />
+
+                {/* Right: Notifications */}
+                <div className="flex items-center gap-2">
+                  <NotificationBell
+                    initialCount={unreadCount}
+                    initialNotifications={recentNotifications}
+                  />
+                </div>
               </div>
-            </nav>
-          </header>
-          <main className="max-w-6xl mx-auto px-4 py-8">
-            {children}
-          </main>
+            </header>
+
+            {/* Main content */}
+            <main
+              id="main-content"
+              className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] safe-bottom"
+              tabIndex={-1}
+            >
+              {children}
+            </main>
+
+            {/* Toast notifications */}
+            <Toaster />
+          </TooltipProvider>
         </Providers>
       </body>
     </html>

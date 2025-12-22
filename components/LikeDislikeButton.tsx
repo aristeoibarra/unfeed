@@ -2,6 +2,15 @@
 
 import { useState } from "react"
 import { setReaction, type ReactionType } from "@/actions/reactions"
+import { ThumbsUp, ThumbsDown, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 interface LikeDislikeButtonProps {
   videoId: string
@@ -9,11 +18,13 @@ interface LikeDislikeButtonProps {
 }
 
 export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButtonProps) {
+  const { toast } = useToast()
   const [reaction, setReactionState] = useState<ReactionType | null>(initialReaction)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<"like" | "dislike" | null>(null)
 
   async function handleClick(type: ReactionType) {
-    setLoading(true)
+    setLoading(type)
+    const previousReaction = reaction
 
     // Optimistic update
     if (reaction === type) {
@@ -22,53 +33,87 @@ export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButto
       setReactionState(type)
     }
 
-    await setReaction(videoId, type)
-    setLoading(false)
+    try {
+      await setReaction(videoId, type)
+
+      // Show feedback
+      if (previousReaction === type) {
+        toast({ title: "Reaction removed" })
+      } else if (type === "like") {
+        toast({ title: "Liked", description: "Added to your liked videos." })
+      } else {
+        toast({ title: "Disliked", description: "This video won't be recommended." })
+      }
+    } catch (error) {
+      // Revert on error
+      setReactionState(previousReaction)
+      toast({
+        title: "Error",
+        description: "Failed to save reaction.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(null)
+    }
   }
 
   return (
-    <div className="flex gap-1">
-      <button
-        onClick={() => handleClick("like")}
-        disabled={loading}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-          reaction === "like"
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-        } disabled:opacity-50`}
-        title="Like"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="w-4 h-4"
-        >
-          <path d="M1 8.25a1.25 1.25 0 112.5 0v7.5a1.25 1.25 0 11-2.5 0v-7.5zM11 3V1.7c0-.268.14-.526.395-.607A2 2 0 0114 3c0 .995-.182 1.948-.514 2.826-.204.54.166 1.174.744 1.174h2.52c1.243 0 2.261 1.01 2.146 2.247a23.864 23.864 0 01-1.341 5.974C17.153 16.323 16.072 17 14.9 17h-3.192a3 3 0 01-1.341-.317l-2.734-1.366A3 3 0 006.292 15H5V8h.963c.685 0 1.258-.483 1.612-1.068a4.011 4.011 0 012.166-1.73c.432-.143.853-.386 1.011-.814.16-.432.248-.9.248-1.388z" />
-        </svg>
-        <span className="text-sm font-medium">Like</span>
-      </button>
+    <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={() => handleClick("like")}
+            disabled={loading !== null}
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "rounded-none border-r border-gray-200 dark:border-gray-700",
+              reaction === "like" && "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+            )}
+            aria-label={reaction === "like" ? "Remove like" : "Like this video"}
+            aria-pressed={reaction === "like"}
+          >
+            {loading === "like" ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <ThumbsUp
+                className={cn("h-4 w-4", reaction === "like" && "fill-current")}
+                aria-hidden="true"
+              />
+            )}
+            <span className="hidden sm:inline ml-1">Like</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Like</TooltipContent>
+      </Tooltip>
 
-      <button
-        onClick={() => handleClick("dislike")}
-        disabled={loading}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-          reaction === "dislike"
-            ? "bg-red-600 text-white"
-            : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-        } disabled:opacity-50`}
-        title="Dislike"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="w-4 h-4"
-        >
-          <path d="M18.905 12.75a1.25 1.25 0 01-2.5 0v-7.5a1.25 1.25 0 112.5 0v7.5zM8.905 17v1.3c0 .268-.14.526-.395.607A2 2 0 015.905 17c0-.995.182-1.948.514-2.826.204-.54-.166-1.174-.744-1.174h-2.52c-1.242 0-2.26-1.01-2.146-2.247.193-2.08.652-4.082 1.341-5.974C2.752 3.678 3.833 3 5.005 3h3.192a3 3 0 011.342.317l2.733 1.366A3 3 0 0013.613 5h1.292v7h-.963c-.684 0-1.258.482-1.612 1.068a4.012 4.012 0 01-2.165 1.73c-.433.143-.854.386-1.012.814-.16.432-.248.9-.248 1.388z" />
-        </svg>
-        <span className="text-sm font-medium">Dislike</span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={() => handleClick("dislike")}
+            disabled={loading !== null}
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "rounded-none",
+              reaction === "dislike" && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+            )}
+            aria-label={reaction === "dislike" ? "Remove dislike" : "Dislike this video"}
+            aria-pressed={reaction === "dislike"}
+          >
+            {loading === "dislike" ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <ThumbsDown
+                className={cn("h-4 w-4", reaction === "dislike" && "fill-current")}
+                aria-hidden="true"
+              />
+            )}
+            <span className="hidden sm:inline ml-1">Dislike</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Dislike</TooltipContent>
+      </Tooltip>
     </div>
   )
 }
