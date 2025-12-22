@@ -61,36 +61,49 @@ export function VideoPlayer({
     addedToHistory.current = true
 
     const initializePlayer = async () => {
-      // Check for existing progress
-      const existingProgress = await getVideoProgress(videoId)
+      try {
+        // Check for existing progress
+        const existingProgress = await getVideoProgress(videoId)
 
-      if (existingProgress && !existingProgress.completed && existingProgress.progress > 30) {
-        // Only show resume dialog if progress is more than 30 seconds
-        // and video is not completed
-        setSavedProgress(existingProgress.progress)
-        setHistoryId(existingProgress.historyId)
-        setShowResumeDialog(true)
-      } else {
-        // No significant progress, start fresh and create new history entry
-        const historyId = await addToHistory(videoId, {
+        if (existingProgress && !existingProgress.completed && existingProgress.progress > 30) {
+          // Only show resume dialog if progress is more than 30 seconds
+          // and video is not completed
+          setSavedProgress(existingProgress.progress)
+          setHistoryId(existingProgress.historyId)
+          setShowResumeDialog(true)
+        } else {
+          // No significant progress, start fresh and create new history entry
+          const historyId = await addToHistory(videoId, {
+            title: video.title,
+            thumbnail: video.thumbnail,
+            channelId: video.channelId,
+            channelName: video.channelName,
+            duration: video.duration,
+          })
+          setHistoryId(historyId)
+          setIsInitialized(true)
+        }
+
+        // Set up player context with video info
+        playVideo({
+          videoId,
           title: video.title,
-          thumbnail: video.thumbnail,
-          channelId: video.channelId,
           channelName: video.channelName,
+          thumbnail: video.thumbnail,
           duration: video.duration,
         })
-        setHistoryId(historyId)
+      } catch (error) {
+        console.error("Error initializing player:", error)
+        // Initialize anyway to show video
         setIsInitialized(true)
+        playVideo({
+          videoId,
+          title: video.title,
+          channelName: video.channelName,
+          thumbnail: video.thumbnail,
+          duration: video.duration,
+        })
       }
-
-      // Set up player context with video info
-      playVideo({
-        videoId,
-        title: video.title,
-        channelName: video.channelName,
-        thumbnail: video.thumbnail,
-        duration: video.duration,
-      })
     }
 
     initializePlayer()
@@ -104,15 +117,19 @@ export function VideoPlayer({
   }
 
   const handleStartOver = async () => {
-    // Create new history entry for fresh start
-    const historyId = await addToHistory(videoId, {
-      title: video.title,
-      thumbnail: video.thumbnail,
-      channelId: video.channelId,
-      channelName: video.channelName,
-      duration: video.duration,
-    })
-    setHistoryId(historyId)
+    try {
+      // Create new history entry for fresh start
+      const historyId = await addToHistory(videoId, {
+        title: video.title,
+        thumbnail: video.thumbnail,
+        channelId: video.channelId,
+        channelName: video.channelName,
+        duration: video.duration,
+      })
+      setHistoryId(historyId)
+    } catch (error) {
+      console.error("Error creating history entry:", error)
+    }
     setResumeTime(0)
     setIsInitialized(true)
   }

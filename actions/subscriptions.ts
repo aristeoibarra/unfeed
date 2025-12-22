@@ -6,10 +6,8 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { deepSync } from "./sync"
 
-const urlSchema = z.string().url().refine(
-  (url) => url.includes("youtube.com") || url.includes("youtu.be"),
-  { message: "Must be a YouTube URL" }
-)
+// Accepts: @handle, full YouTube URL, or channel name
+const inputSchema = z.string().min(1, "Please enter a channel")
 
 type ActionResult<T> =
   | { success: true; data: T }
@@ -31,10 +29,18 @@ export async function getSubscription(channelId: string) {
   })
 }
 
-export async function addSubscription(url: string): Promise<ActionResult<{ id: number; reactivated?: boolean }>> {
-  const validation = urlSchema.safeParse(url)
+export async function addSubscription(input: string): Promise<ActionResult<{ id: number; reactivated?: boolean }>> {
+  const validation = inputSchema.safeParse(input.trim())
   if (!validation.success) {
     return { success: false, error: validation.error.issues[0].message }
+  }
+
+  // Convert @handle or name to YouTube URL
+  let url = input.trim()
+  if (url.startsWith("@")) {
+    url = `https://www.youtube.com/${url}`
+  } else if (!url.includes("youtube.com") && !url.includes("youtu.be")) {
+    url = `https://www.youtube.com/@${url}`
   }
 
   try {

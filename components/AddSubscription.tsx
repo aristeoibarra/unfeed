@@ -60,13 +60,13 @@ export function AddSubscription() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
           <Input
-            type="url"
+            type="text"
             value={url}
             onChange={(e) => {
               setUrl(e.target.value)
               if (error) setError(null)
             }}
-            placeholder="https://youtube.com/@channel or channel URL"
+            placeholder="@midudev, channel URL, or channel name"
             disabled={loading}
             error={!!error}
             aria-label="YouTube channel URL"

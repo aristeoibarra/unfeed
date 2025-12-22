@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { deleteSubscription } from "@/actions/subscriptions"
 import { assignCategory, type CategoryData } from "@/actions/categories"
@@ -25,6 +25,11 @@ export function SubscriptionListWithCategories({
 }: SubscriptionListWithCategoriesProps) {
   const [subscriptions, setSubscriptions] = useState(initialSubscriptions)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  // Sync state when props change (after router.refresh)
+  useEffect(() => {
+    setSubscriptions(initialSubscriptions)
+  }, [initialSubscriptions])
 
   // Group subscriptions by category
   const grouped = new Map<number | null, Subscription[]>()
