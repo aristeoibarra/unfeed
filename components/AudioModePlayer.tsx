@@ -44,14 +44,22 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
 
   const [isLoading, setIsLoading] = useState(true)
   const progressRef = useRef<HTMLDivElement>(null)
-  const initialSeekDoneRef = useRef(false)
 
-  // Handle loading state only - playback is controlled by context
+  // Handle loading state - check if audio is ready to play
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
+
+    // If no audio element or no URL, we're still loading
+    if (!audio || !audioUrl) {
+      setIsLoading(true)
+      return
+    }
 
     const handleCanPlay = () => {
+      setIsLoading(false)
+    }
+
+    const handleCanPlayThrough = () => {
       setIsLoading(false)
     }
 
@@ -63,19 +71,28 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       setIsLoading(false)
     }
 
+    const handleLoadedData = () => {
+      setIsLoading(false)
+    }
+
     audio.addEventListener("canplay", handleCanPlay)
+    audio.addEventListener("canplaythrough", handleCanPlayThrough)
     audio.addEventListener("waiting", handleWaiting)
     audio.addEventListener("playing", handlePlaying)
+    audio.addEventListener("loadeddata", handleLoadedData)
 
-    // If audio is already ready
-    if (audio.readyState >= 3) {
+    // Check if audio is already ready
+    // readyState: 0=HAVE_NOTHING, 1=HAVE_METADATA, 2=HAVE_CURRENT_DATA, 3=HAVE_FUTURE_DATA, 4=HAVE_ENOUGH_DATA
+    if (audio.readyState >= 2) {
       setIsLoading(false)
     }
 
     return () => {
       audio.removeEventListener("canplay", handleCanPlay)
+      audio.removeEventListener("canplaythrough", handleCanPlayThrough)
       audio.removeEventListener("waiting", handleWaiting)
       audio.removeEventListener("playing", handlePlaying)
+      audio.removeEventListener("loadeddata", handleLoadedData)
     }
   }, [audioRef, audioUrl])
 

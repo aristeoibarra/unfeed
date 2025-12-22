@@ -418,14 +418,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       {/*
         Single audio element for background playback
         - Always rendered (not conditional) to maintain Media Session connection
-        - Uses key attributes for better background playback on Android
+        - Uses key to force reload when audioUrl changes
       */}
       <audio
+        key={audioUrl || "empty"}
         ref={audioRef}
         src={audioUrl || undefined}
         preload="auto"
         playsInline
-        crossOrigin="anonymous"
       />
     </PlayerContext.Provider>
   )
