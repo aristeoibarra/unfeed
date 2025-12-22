@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/auth/LoginForm"
+import { LoginFormAction } from "@/components/auth/LoginFormAction"
 import { getSession } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import type { Metadata } from "next"
@@ -48,7 +48,7 @@ export default async function LoginPage() {
         {/* Login form card - Elevated surface for focus */}
         <div className="bg-[var(--card)] rounded-2xl p-6 md:p-8 shadow-sm ring-1 ring-[var(--border)]">
           <h2 className="sr-only">Formulario de inicio de sesion</h2>
-          <LoginForm />
+          <LoginFormAction />
         </div>
 
         {/* Footer - Subtle branding */}
