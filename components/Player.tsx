@@ -11,6 +11,13 @@ import {
   YouTubePlayerState,
 } from "@/hooks/useYouTubePlayer"
 
+// Extended type for screen orientation with optional lock method
+interface OrientationWithLock {
+  lock?: (orientation: "landscape" | "portrait" | "landscape-primary" | "landscape-secondary" | "portrait-primary" | "portrait-secondary") => Promise<void>
+  unlock?: () => void
+  type?: string
+}
+
 interface PlayerProps {
   videoId: string
   onWatched?: () => void
@@ -143,6 +150,48 @@ export function Player({ videoId, onWatched, initialTime = 0 }: PlayerProps) {
   useEffect(() => {
     initialTimeAppliedRef.current = false
   }, [videoId])
+
+  // Handle fullscreen changes to unlock/lock orientation for mobile
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFullscreen = !!document.fullscreenElement
+      const orientation = screen.orientation as OrientationWithLock | undefined
+
+      if (isFullscreen) {
+        // Try to unlock orientation when entering fullscreen
+        if (orientation?.unlock) {
+          try {
+            orientation.unlock()
+          } catch {
+            // Orientation API not supported or failed
+          }
+        }
+        // Also try to lock to landscape for better video experience
+        if (orientation?.lock) {
+          orientation.lock("landscape").catch(() => {
+            // Lock not supported, that's ok - at least we unlocked
+          })
+        }
+      } else {
+        // When exiting fullscreen, unlock to allow any orientation
+        if (orientation?.unlock) {
+          try {
+            orientation.unlock()
+          } catch {
+            // Orientation API not supported
+          }
+        }
+      }
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange)
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange)
+    }
+  }, [])
 
   // Validate video ID to prevent injection
   if (!isValidVideoId(videoId)) {

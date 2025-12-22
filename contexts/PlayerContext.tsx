@@ -68,6 +68,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const lastSavedProgressRef = useRef<number>(0)
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const wasPlayingBeforeHiddenRef = useRef(false)
 
   // Media Session API setup
   useEffect(() => {
@@ -83,21 +84,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     })
 
     navigator.mediaSession.setActionHandler("play", () => {
-      if (isAudioMode) {
-        audioRef.current?.play()
+      if (isAudioMode && audioRef.current) {
+        // Only set isPlaying to true after play succeeds
+        audioRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false))
       } else if (youtubePlayerControls) {
         youtubePlayerControls.playVideo()
+        setIsPlaying(true)
       }
-      setIsPlaying(true)
     })
 
     navigator.mediaSession.setActionHandler("pause", () => {
-      if (isAudioMode) {
-        audioRef.current?.pause()
+      if (isAudioMode && audioRef.current) {
+        audioRef.current.pause()
+        // pause() is synchronous, state will be updated by pause event
       } else if (youtubePlayerControls) {
         youtubePlayerControls.pauseVideo()
+        setIsPlaying(false)
       }
-      setIsPlaying(false)
     })
 
     navigator.mediaSession.setActionHandler("seekbackward", () => {
@@ -253,6 +258,63 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setSavedProgress(null)
     lastSavedProgressRef.current = 0
   }, [historyId, currentTime, duration])
+
+  // Handle page visibility changes (phone sleep/wake, tab switching)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const audio = audioRef.current
+
+      if (document.hidden) {
+        // Page is being hidden (phone sleep, app switch, tab change)
+        // Save current playing state to restore later
+        wasPlayingBeforeHiddenRef.current = isPlaying
+
+        // For audio mode, we want audio to continue in background
+        // But we need to sync state when coming back
+        if (isAudioMode && audio) {
+          // Audio can continue playing in background
+          // Just make sure our state reflects reality
+          if (audio.paused && isPlaying) {
+            setIsPlaying(false)
+          }
+        }
+      } else {
+        // Page is becoming visible again (phone wake, app resume)
+        if (isAudioMode && audio) {
+          // Sync isPlaying state with actual audio state
+          const isActuallyPlaying = !audio.paused && !audio.ended
+
+          if (isPlaying !== isActuallyPlaying) {
+            setIsPlaying(isActuallyPlaying)
+          }
+
+          // If user was playing before and audio got paused by system,
+          // try to resume (may fail due to autoplay policy)
+          if (wasPlayingBeforeHiddenRef.current && audio.paused) {
+            audio.play().catch(() => {
+              // Autoplay blocked - user needs to interact
+              // Update state to reflect paused state
+              setIsPlaying(false)
+            })
+          }
+        } else if (youtubePlayerControls) {
+          // For video mode, sync with YouTube player state
+          const ytState = youtubePlayerControls.getPlayerState()
+          // YouTubePlayerState.PLAYING = 1
+          const isYtPlaying = ytState === 1
+          if (isPlaying !== isYtPlaying) {
+            setIsPlaying(isYtPlaying)
+          }
+        }
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [isPlaying, isAudioMode, youtubePlayerControls])
 
   // Sync audio element events with context state
   useEffect(() => {
