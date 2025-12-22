@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 
 // YouTube Player States
 export const YouTubePlayerState = {
@@ -122,22 +122,22 @@ export function useYouTubePlayer({
     iframeRef.current.contentWindow.postMessage(JSON.stringify(message), YOUTUBE_ORIGIN)
   }, [])
 
-  // Player controls exposed to consumers
-  const controls: YouTubePlayerControls = {
-    playVideo: useCallback(() => sendCommand("playVideo"), [sendCommand]),
-    pauseVideo: useCallback(() => sendCommand("pauseVideo"), [sendCommand]),
-    seekTo: useCallback((seconds: number, allowSeekAhead = true) => {
+  // Player controls exposed to consumers - memoized to prevent infinite loops
+  const controls: YouTubePlayerControls = useMemo(() => ({
+    playVideo: () => sendCommand("playVideo"),
+    pauseVideo: () => sendCommand("pauseVideo"),
+    seekTo: (seconds: number, allowSeekAhead = true) => {
       sendCommand("seekTo", [seconds, allowSeekAhead])
       currentTimeRef.current = seconds
       setCurrentTime(seconds)
-    }, [sendCommand]),
-    mute: useCallback(() => sendCommand("mute"), [sendCommand]),
-    unMute: useCallback(() => sendCommand("unMute"), [sendCommand]),
-    setVolume: useCallback((volume: number) => sendCommand("setVolume", [volume]), [sendCommand]),
-    getCurrentTime: useCallback(() => currentTimeRef.current, []),
-    getDuration: useCallback(() => durationRef.current, []),
-    getPlayerState: useCallback(() => playerStateRef.current, []),
-  }
+    },
+    mute: () => sendCommand("mute"),
+    unMute: () => sendCommand("unMute"),
+    setVolume: (volume: number) => sendCommand("setVolume", [volume]),
+    getCurrentTime: () => currentTimeRef.current,
+    getDuration: () => durationRef.current,
+    getPlayerState: () => playerStateRef.current,
+  }), [sendCommand])
 
   // Handle incoming messages from YouTube iframe
   useEffect(() => {
