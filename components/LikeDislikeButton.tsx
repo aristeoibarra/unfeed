@@ -44,7 +44,7 @@ export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButto
       } else {
         toast({ title: "Disliked", description: "This video won't be recommended." })
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setReactionState(previousReaction)
       toast({

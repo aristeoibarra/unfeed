@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { usePlayer } from "@/contexts/PlayerContext"
 import Link from "next/link"
 
@@ -24,7 +24,6 @@ export function MiniPlayer() {
 
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     const audio = audioRef.current

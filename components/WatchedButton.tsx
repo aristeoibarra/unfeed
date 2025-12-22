@@ -39,7 +39,7 @@ export function WatchedButton({ videoId, isWatched: initialWatched }: WatchedBut
           : "This video has been marked as unwatched.",
       })
       router.refresh()
-    } catch (error) {
+    } catch {
       // Revert on error
       setIsWatched(previousState)
       toast({

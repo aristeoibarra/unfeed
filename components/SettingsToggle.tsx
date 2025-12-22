@@ -27,7 +27,7 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
           ? "Videos you dislike will no longer appear in your feed."
           : "Disliked videos will now appear in your feed.",
       })
-    } catch (error) {
+    } catch {
       // Revert on error
       setHideDisliked(!checked)
       toast({
@@ -54,7 +54,7 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
             Hide disliked videos
           </label>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Don't show videos you've disliked in your feed
+            Videos you dislike will be hidden from your feed
           </p>
         </div>
       </div>

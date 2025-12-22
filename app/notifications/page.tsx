@@ -1,4 +1,4 @@
-import { getNotifications, markAllAsRead } from "@/actions/notifications"
+import { getNotifications } from "@/actions/notifications"
 import { NotificationList } from "@/components/NotificationList"
 import Link from "next/link"
 

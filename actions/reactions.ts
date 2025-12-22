@@ -2,10 +2,18 @@
 
 import { prisma } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 
 export type ReactionType = "like" | "dislike"
 
+const videoIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{11}$/, "Invalid video ID format")
+const reactionTypeSchema = z.enum(["like", "dislike"])
+
 export async function getReaction(videoId: string): Promise<ReactionType | null> {
+  const validated = videoIdSchema.safeParse(videoId)
+  if (!validated.success) {
+    return null
+  }
   const reaction = await prisma.videoReaction.findUnique({
     where: { videoId }
   })
@@ -41,6 +49,13 @@ export async function getDislikedVideoIds(): Promise<string[]> {
 }
 
 export async function setReaction(videoId: string, type: ReactionType): Promise<void> {
+  const videoIdValidation = videoIdSchema.safeParse(videoId)
+  const typeValidation = reactionTypeSchema.safeParse(type)
+
+  if (!videoIdValidation.success || !typeValidation.success) {
+    throw new Error("Invalid input")
+  }
+
   const existing = await prisma.videoReaction.findUnique({
     where: { videoId }
   })

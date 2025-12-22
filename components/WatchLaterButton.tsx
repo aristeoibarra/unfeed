@@ -48,7 +48,7 @@ export function WatchLaterButton({ video, isInWatchLater: initial, variant = "bu
           : "This video has been removed from Watch Later.",
       })
       router.refresh()
-    } catch (error) {
+    } catch {
       setIsInWatchLater(previousState)
       toast({
         title: "Error",

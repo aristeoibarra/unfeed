@@ -42,7 +42,7 @@ export function AddSubscription() {
           variant: "destructive",
         })
       }
-    } catch (err) {
+    } catch {
       const message = "An unexpected error occurred. Please try again."
       setError(message)
       toast({

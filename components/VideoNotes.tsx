@@ -1,7 +1,7 @@
 "use client"
 
 import { saveNote, deleteNote } from "@/actions/notes"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 interface VideoNotesProps {
   videoId: string
@@ -17,25 +17,36 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
   const [lastSaved, setLastSaved] = useState<Date | null>(
     initialNote?.updatedAt ? new Date(initialNote.updatedAt) : null
   )
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Debounced auto-save
-  const debouncedSave = useCallback(
-    debounce(async (text: string) => {
-      if (text.trim()) {
-        setSaving(true)
-        await saveNote(videoId, text)
-        setLastSaved(new Date())
-        setSaving(false)
-      }
-    }, 1000),
-    [videoId]
-  )
+  // Debounced auto-save using refs to avoid stale closures
+  const saveNoteRef = useCallback(async (text: string) => {
+    if (text.trim()) {
+      setSaving(true)
+      await saveNote(videoId, text)
+      setLastSaved(new Date())
+      setSaving(false)
+    }
+  }, [videoId])
 
   useEffect(() => {
     if (content !== (initialNote?.content || "")) {
-      debouncedSave(content)
+      // Clear previous timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      // Set new timeout for debounced save
+      timeoutRef.current = setTimeout(() => {
+        saveNoteRef(content)
+      }, 1000)
     }
-  }, [content, debouncedSave, initialNote?.content])
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [content, saveNoteRef, initialNote?.content])
 
   async function handleDelete() {
     if (confirm("Delete this note?")) {
@@ -72,17 +83,6 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
       />
     </div>
   )
-}
-
-function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => fn(...args), delay)
-  }
 }
 
 function formatTime(date: Date): string {

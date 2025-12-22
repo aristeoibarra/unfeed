@@ -9,11 +9,10 @@ import { AudioModePlayer } from "./AudioModePlayer"
 import { AudioModeToggle } from "./AudioModeToggle"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { ArrowLeft, ExternalLink } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import type { ReactionType } from "@/actions/reactions"
 import { addToHistory } from "@/actions/history"
 import { usePlayer } from "@/contexts/PlayerContext"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
 interface Video {

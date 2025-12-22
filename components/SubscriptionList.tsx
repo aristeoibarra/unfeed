@@ -46,7 +46,7 @@ export function SubscriptionList({ subscriptions }: SubscriptionListProps) {
         description: `${sub.name} has been removed from your subscriptions.`,
       })
       router.refresh()
-    } catch (error) {
+    } catch {
       toast({
         title: "Failed to remove subscription",
         description: "An error occurred. Please try again.",

@@ -82,7 +82,7 @@ export default async function SubscriptionsPage() {
                 )}
               </CardTitle>
               <CardDescription>
-                All the channels you're subscribed to
+                All the channels you follow
               </CardDescription>
             </div>
           </div>
