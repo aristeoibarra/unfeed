@@ -57,6 +57,25 @@ sudo apt install yt-dlp
 winget install yt-dlp
 ```
 
+### yt-dlp with Cookies (Server/Production)
+
+For Audio Mode to work reliably in production, yt-dlp may need YouTube cookies to bypass rate limits and access restrictions.
+
+1. **Export cookies from your browser** using an extension like [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) or similar
+2. **Copy the cookies file to your server:**
+   ```bash
+   scp cookies.txt user@your-server:/path/to/unfeed/cookies.txt
+   ```
+3. **Set the environment variable:**
+   ```env
+   YTDLP_COOKIES_PATH=/path/to/unfeed/cookies.txt
+   ```
+
+**Important:**
+- Keep cookies.txt private (it's already in .gitignore)
+- Cookies expire periodically, you may need to re-export them
+- Use a dedicated YouTube account for this purpose
+
 ## Installation
 
 ```bash

@@ -49,6 +49,9 @@ next-env.d.ts
 *.db
 *.db-journal
 
+# yt-dlp cookies (sensitive)
+cookies.txt
+
 # PWA generated files
 /public/sw.js
 /public/sw.js.map
