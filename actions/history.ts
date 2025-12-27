@@ -89,11 +89,16 @@ export async function getHistory(page: number = 1, search?: string) {
   const [entries, total] = await Promise.all([
     prisma.watchHistory.findMany({
       where,
+      distinct: ['videoId'],
       orderBy: { watchedAt: "desc" },
       skip,
       take: HISTORY_PER_PAGE
     }),
-    prisma.watchHistory.count({ where })
+    prisma.watchHistory.findMany({
+      where,
+      distinct: ['videoId'],
+      select: { videoId: true }
+    }).then(results => results.length)
   ])
 
   return {
@@ -111,6 +116,7 @@ export async function searchHistory(query: string) {
         { channelName: { contains: query } }
       ]
     },
+    distinct: ['videoId'],
     orderBy: { watchedAt: "desc" },
     take: 50
   })
@@ -132,7 +138,11 @@ export async function clearHistory(): Promise<void> {
 }
 
 export async function getHistoryCount(): Promise<number> {
-  return prisma.watchHistory.count()
+  const uniqueVideos = await prisma.watchHistory.findMany({
+    distinct: ['videoId'],
+    select: { videoId: true }
+  })
+  return uniqueVideos.length
 }
 
 // Get the latest history entry for a specific video (for resume functionality)
