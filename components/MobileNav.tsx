@@ -11,6 +11,7 @@ import {
   ListVideo,
   BookmarkCheck,
   Users,
+  Settings,
   Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/playlists", label: "Playlists", icon: ListVideo },
   { href: "/watch-later", label: "Watch Later", icon: BookmarkCheck },
   { href: "/subscriptions", label: "Subscriptions", icon: Users },
+  { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 export function MobileNav() {

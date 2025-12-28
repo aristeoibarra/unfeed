@@ -119,18 +119,34 @@ export async function getHistory(page: number = 1, search?: string) {
 }
 
 export async function searchHistory(query: string) {
-  const entries = await prisma.watchHistory.findMany({
-    where: {
-      deletedAt: null,
-      OR: [
-        { title: { contains: query } },
-        { channelName: { contains: query } }
-      ]
-    },
-    distinct: ['videoId'],
-    orderBy: { watchedAt: "desc" },
-    take: 50
-  })
+  // SQLite case-insensitive search using LIKE
+  const searchPattern = `%${query}%`
+  const entries = await prisma.$queryRaw<Array<{
+    id: number
+    videoId: string
+    title: string
+    thumbnail: string
+    channelId: string
+    channelName: string
+    duration: number | null
+    watchedAt: Date
+    progress: number | null
+    completed: boolean
+  }>>`
+    SELECT DISTINCT h1.*
+    FROM WatchHistory h1
+    INNER JOIN (
+      SELECT videoId, MAX(watchedAt) as maxWatched
+      FROM WatchHistory
+      WHERE deletedAt IS NULL
+        AND (title LIKE ${searchPattern} COLLATE NOCASE
+             OR channelName LIKE ${searchPattern} COLLATE NOCASE)
+      GROUP BY videoId
+    ) h2 ON h1.videoId = h2.videoId AND h1.watchedAt = h2.maxWatched
+    WHERE h1.deletedAt IS NULL
+    ORDER BY h1.watchedAt DESC
+    LIMIT 50
+  `
 
   return entries.map(formatEntry)
 }

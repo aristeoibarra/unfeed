@@ -29,7 +29,9 @@ export const prismaMock = {
   notification: createModelMock(),
   category: createModelMock(),
   audioCache: createModelMock(),
+  settings: createModelMock(),
   $transaction: vi.fn((fn) => fn(prismaMock)),
+  $queryRaw: vi.fn(),
   $connect: vi.fn(),
   $disconnect: vi.fn(),
 };

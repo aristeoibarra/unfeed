@@ -197,7 +197,7 @@ describe("actions/history", () => {
   });
 
   describe("searchHistory", () => {
-    it("searches by title and channel name with deletedAt filter", async () => {
+    it("searches by title and channel name using case-insensitive raw query", async () => {
       const mockEntries = [
         {
           id: 1,
@@ -213,23 +213,45 @@ describe("actions/history", () => {
         },
       ];
 
-      prismaMock.watchHistory.findMany.mockResolvedValue(mockEntries);
+      prismaMock.$queryRaw.mockResolvedValue(mockEntries);
 
-      const result = await searchHistory("Matching");
+      const result = await searchHistory("matching");
 
       expect(result).toHaveLength(1);
-      expect(prismaMock.watchHistory.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            deletedAt: null,
-            OR: [
-              { title: { contains: "Matching" } },
-              { channelName: { contains: "Matching" } },
-            ],
-          },
-          take: 50,
-        })
-      );
+      expect(result[0].videoId).toBe("video1");
+      expect(prismaMock.$queryRaw).toHaveBeenCalled();
+    });
+
+    it("returns empty array when no matches found", async () => {
+      prismaMock.$queryRaw.mockResolvedValue([]);
+
+      const result = await searchHistory("nonexistent");
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("formats entries correctly with ISO date strings", async () => {
+      const testDate = new Date("2024-01-15T10:30:00Z");
+      const mockEntries = [
+        {
+          id: 1,
+          videoId: "video1",
+          title: "Test Video",
+          thumbnail: "thumb.jpg",
+          channelId: "ch1",
+          channelName: "Test Channel",
+          duration: 300,
+          watchedAt: testDate,
+          progress: 150,
+          completed: false,
+        },
+      ];
+
+      prismaMock.$queryRaw.mockResolvedValue(mockEntries);
+
+      const result = await searchHistory("test");
+
+      expect(result[0].watchedAt).toBe(testDate.toISOString());
     });
   });
 

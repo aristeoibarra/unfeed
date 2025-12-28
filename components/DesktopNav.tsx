@@ -12,6 +12,7 @@ const navItems = [
   { href: "/playlists", label: "Playlists" },
   { href: "/watch-later", label: "Watch Later" },
   { href: "/subscriptions", label: "Subscriptions" },
+  { href: "/settings", label: "Settings" },
 ]
 
 export function DesktopNav() {
