@@ -75,13 +75,14 @@ const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com"
 
 export function useYouTubePlayer({
   videoId,
-  autoplay = false,
+  autoplay: _autoplay = false,
   initialTime = 0,
   onReady,
   onStateChange,
   onError,
   onTimeUpdate,
 }: UseYouTubePlayerOptions): UseYouTubePlayerReturn {
+  void _autoplay // Used in buildYouTubeEmbedUrl, kept for API consistency
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
   const [isReady, setIsReady] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -239,6 +240,7 @@ export function useYouTubePlayer({
   }, [initializeListening, videoId])
 
   // Reset state when videoId changes
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: reset player state when video changes */
   useEffect(() => {
     setIsReady(false)
     setCurrentTime(0)
@@ -250,6 +252,7 @@ export function useYouTubePlayer({
     playerStateRef.current = YouTubePlayerState.UNSTARTED
     initialTimeAppliedRef.current = false
   }, [videoId])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return {
     iframeRef,
