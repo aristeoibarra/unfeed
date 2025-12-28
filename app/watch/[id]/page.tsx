@@ -67,6 +67,8 @@ export default async function WatchPage({ params }: WatchPageProps) {
         video={video}
         initialInWatchLater={inWatchLater}
         initialReaction={reaction}
+        preferredLanguage={settings.preferredLanguage}
+        autoShowSubtitles={settings.autoShowSubtitles}
       />
 
       {/* Notes section */}

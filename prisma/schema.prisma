@@ -130,6 +130,8 @@ model Settings {
   hideDislikedFromFeed  Boolean @default(true)  // Ocultar videos con dislike del feed
   dailyLimitMinutes     Int?    // null = no limit
   weeklyLimitMinutes    Int?    // null = no limit
+  preferredLanguage     String  @default("es")  // "es" | "en" - YouTube UI/subtitle language
+  autoShowSubtitles     Boolean @default(false) // Show subtitles automatically
 }
 
 model WatchHistory {

@@ -29,6 +29,8 @@ interface VideoPlayerProps {
   video: Video
   initialInWatchLater: boolean
   initialReaction: ReactionType | null
+  preferredLanguage?: string
+  autoShowSubtitles?: boolean
 }
 
 export function VideoPlayer({
@@ -36,6 +38,8 @@ export function VideoPlayer({
   video,
   initialInWatchLater,
   initialReaction,
+  preferredLanguage = "es",
+  autoShowSubtitles = false,
 }: VideoPlayerProps) {
   const [savedProgress, setSavedProgress] = useState<number | null>(null)
   const [resumeTime, setResumeTime] = useState(0)
@@ -146,6 +150,8 @@ export function VideoPlayer({
             <Player
               videoId={videoId}
               initialTime={resumeTime}
+              preferredLanguage={preferredLanguage}
+              autoShowSubtitles={autoShowSubtitles}
             />
           )
         )}

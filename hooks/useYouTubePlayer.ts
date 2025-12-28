@@ -270,9 +270,16 @@ export function buildYouTubeEmbedUrl(
   options: {
     autoplay?: boolean
     origin?: string
+    preferredLanguage?: string
+    autoShowSubtitles?: boolean
   } = {}
 ): string {
-  const { autoplay = false, origin = typeof window !== "undefined" ? window.location.origin : "" } = options
+  const {
+    autoplay = false,
+    origin = typeof window !== "undefined" ? window.location.origin : "",
+    preferredLanguage = "es",
+    autoShowSubtitles = false
+  } = options
 
   const params = new URLSearchParams({
     enablejsapi: "1",
@@ -281,6 +288,9 @@ export function buildYouTubeEmbedUrl(
     modestbranding: "1",
     playsinline: "1",
     autoplay: autoplay ? "1" : "0",
+    hl: preferredLanguage,              // YouTube UI language
+    cc_lang_pref: preferredLanguage,    // Subtitle language preference
+    cc_load_policy: autoShowSubtitles ? "1" : "0", // 1 = show subtitles by default
   })
 
   return `${YOUTUBE_ORIGIN}/embed/${videoId}?${params.toString()}`

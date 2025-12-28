@@ -92,6 +92,10 @@ describe("buildYouTubeEmbedUrl", () => {
     expect(url).toContain("rel=0");
     expect(url).toContain("modestbranding=1");
     expect(url).toContain("playsinline=1");
+    // Default language settings
+    expect(url).toContain("hl=es");
+    expect(url).toContain("cc_lang_pref=es");
+    expect(url).toContain("cc_load_policy=0");
   });
 
   it("sets autoplay when enabled", () => {
@@ -106,6 +110,34 @@ describe("buildYouTubeEmbedUrl", () => {
     });
 
     expect(url).toContain("origin=https%3A%2F%2Fexample.com");
+  });
+
+  it("sets preferred language", () => {
+    const url = buildYouTubeEmbedUrl("abc123def45", {
+      preferredLanguage: "en",
+    });
+
+    expect(url).toContain("hl=en");
+    expect(url).toContain("cc_lang_pref=en");
+  });
+
+  it("enables auto show subtitles", () => {
+    const url = buildYouTubeEmbedUrl("abc123def45", {
+      autoShowSubtitles: true,
+    });
+
+    expect(url).toContain("cc_load_policy=1");
+  });
+
+  it("combines language options correctly", () => {
+    const url = buildYouTubeEmbedUrl("abc123def45", {
+      preferredLanguage: "en",
+      autoShowSubtitles: true,
+    });
+
+    expect(url).toContain("hl=en");
+    expect(url).toContain("cc_lang_pref=en");
+    expect(url).toContain("cc_load_policy=1");
   });
 });
 

@@ -6,7 +6,8 @@ import { TimeLimitSettings } from "@/components/TimeLimitSettings"
 import { ClearHistoryButton } from "@/components/ClearHistoryButton"
 import { CategoryManager } from "@/components/CategoryManager"
 import { SyncStatus } from "@/components/SyncStatus"
-import { Settings, FolderOpen, RefreshCw } from "lucide-react"
+import { LanguageSettings } from "@/components/LanguageSettings"
+import { Settings, FolderOpen, RefreshCw, Languages } from "lucide-react"
 
 export const metadata = {
   title: "Settings - Unfeed",
@@ -67,6 +68,25 @@ export default async function SettingsPage() {
             </div>
           </div>
           <CategoryManager categories={categories} />
+        </section>
+
+        {/* Player Settings */}
+        <section className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <Languages className="h-5 w-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Player</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Language and subtitle preferences
+              </p>
+            </div>
+          </div>
+          <LanguageSettings
+            initialLanguage={settings.preferredLanguage}
+            initialAutoShowSubtitles={settings.autoShowSubtitles}
+          />
         </section>
 
         {/* Feed Settings */}

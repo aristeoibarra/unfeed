@@ -22,6 +22,8 @@ interface PlayerProps {
   videoId: string
   onWatched?: () => void
   initialTime?: number
+  preferredLanguage?: string
+  autoShowSubtitles?: boolean
 }
 
 // Validate YouTube video ID format (11 alphanumeric characters)
@@ -29,7 +31,13 @@ function isValidVideoId(id: string): boolean {
   return /^[a-zA-Z0-9_-]{11}$/.test(id)
 }
 
-export function Player({ videoId, onWatched, initialTime = 0 }: PlayerProps) {
+export function Player({
+  videoId,
+  onWatched,
+  initialTime = 0,
+  preferredLanguage = "es",
+  autoShowSubtitles = false
+}: PlayerProps) {
   const [hasError, setHasError] = useState(false)
   const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const initialTimeAppliedRef = useRef(false)
@@ -248,6 +256,8 @@ export function Player({ videoId, onWatched, initialTime = 0 }: PlayerProps) {
   const embedUrl = buildYouTubeEmbedUrl(videoId, {
     autoplay: false,
     origin: typeof window !== "undefined" ? window.location.origin : "",
+    preferredLanguage,
+    autoShowSubtitles,
   })
 
   return (

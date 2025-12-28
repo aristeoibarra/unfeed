@@ -7,6 +7,8 @@ export interface AppSettings {
   hideDislikedFromFeed: boolean
   dailyLimitMinutes: number | null
   weeklyLimitMinutes: number | null
+  preferredLanguage: "es" | "en"
+  autoShowSubtitles: boolean
 }
 
 export interface WatchTimeStatus {
@@ -25,7 +27,9 @@ export interface WatchTimeStatus {
 const DEFAULT_SETTINGS = {
   hideDislikedFromFeed: true,
   dailyLimitMinutes: null,
-  weeklyLimitMinutes: null
+  weeklyLimitMinutes: null,
+  preferredLanguage: "es" as const,
+  autoShowSubtitles: false
 }
 
 async function getOrCreateSettings() {
@@ -45,7 +49,9 @@ export async function getSettings(): Promise<AppSettings> {
   return {
     hideDislikedFromFeed: settings.hideDislikedFromFeed,
     dailyLimitMinutes: settings.dailyLimitMinutes,
-    weeklyLimitMinutes: settings.weeklyLimitMinutes
+    weeklyLimitMinutes: settings.weeklyLimitMinutes,
+    preferredLanguage: settings.preferredLanguage as "es" | "en",
+    autoShowSubtitles: settings.autoShowSubtitles
   }
 }
 
@@ -59,11 +65,14 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
 
   revalidatePath("/")
   revalidatePath("/subscriptions")
+  revalidatePath("/settings")
 
   return {
     hideDislikedFromFeed: updated.hideDislikedFromFeed,
     dailyLimitMinutes: updated.dailyLimitMinutes,
-    weeklyLimitMinutes: updated.weeklyLimitMinutes
+    weeklyLimitMinutes: updated.weeklyLimitMinutes,
+    preferredLanguage: updated.preferredLanguage as "es" | "en",
+    autoShowSubtitles: updated.autoShowSubtitles
   }
 }
 
