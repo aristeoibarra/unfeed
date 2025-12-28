@@ -2,6 +2,7 @@
 
 import { usePlayer } from "@/contexts/PlayerContext"
 import { WatchTimeProgress } from "@/components/WatchTimeProgress"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 
 function formatTime(seconds: number): string {
@@ -21,9 +22,12 @@ export function MiniPlayer() {
     resume,
     stop,
   } = usePlayer()
+  const pathname = usePathname()
+  const isOnWatchPage = pathname.startsWith("/watch/")
 
   // Only show when in audio mode and have a video
-  if (!currentVideo || !isAudioMode) {
+  // Hide on watch page to avoid duplicate players
+  if (!currentVideo || !isAudioMode || isOnWatchPage) {
     return null
   }
 
