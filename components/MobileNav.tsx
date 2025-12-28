@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import {
   Home,
   Clock,
+  BarChart3,
   Heart,
   ListVideo,
   BookmarkCheck,
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   { href: "/", label: "Feed", icon: Home },
   { href: "/history", label: "History", icon: Clock },
+  { href: "/stats", label: "Stats", icon: BarChart3 },
   { href: "/liked", label: "Liked", icon: Heart },
   { href: "/playlists", label: "Playlists", icon: ListVideo },
   { href: "/watch-later", label: "Watch Later", icon: BookmarkCheck },
