@@ -210,3 +210,18 @@ model AudioFile {
   @@index([lastPlayedAt])
   @@index([status])
 }
+
+model SyncLog {
+  id             Int      @id @default(autoincrement())
+  type           String   // "auto" | "manual"
+  status         String   // "success" | "error" | "partial" | "skipped"
+  channelsSynced Int
+  newVideos      Int
+  apiUnitsUsed   Int
+  errors         String?  // JSON array of errors
+  duration       Int      // Duration in seconds
+  triggeredBy    String   // "cron" | "user"
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}

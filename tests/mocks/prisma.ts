@@ -21,6 +21,7 @@ export const prismaMock = {
   videoReaction: createModelMock(),
   subscription: createModelMock(),
   syncStatus: createModelMock(),
+  syncLog: createModelMock(),
   video: createModelMock(),
   playlist: createModelMock(),
   playlistVideo: createModelMock(),

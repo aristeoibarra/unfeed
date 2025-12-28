@@ -53,6 +53,8 @@ export async function getSyncStatus() {
 }
 
 export async function syncVideos(): Promise<{ success: boolean; message: string; syncedCount: number }> {
+  const startTime = Date.now()
+
   try {
     // Solo canales activos (no eliminados) y sin status de error
     const subscriptions = await prisma.subscription.findMany({
@@ -66,6 +68,18 @@ export async function syncVideos(): Promise<{ success: boolean; message: string;
     )
 
     if (activeSubscriptions.length === 0) {
+      const duration = Math.round((Date.now() - startTime) / 1000)
+      await prisma.syncLog.create({
+        data: {
+          type: "manual",
+          status: "success",
+          channelsSynced: 0,
+          newVideos: 0,
+          apiUnitsUsed: 0,
+          duration,
+          triggeredBy: "user"
+        }
+      })
       return { success: true, message: "No subscriptions to sync", syncedCount: 0 }
     }
 
@@ -152,6 +166,21 @@ export async function syncVideos(): Promise<{ success: boolean; message: string;
 
     revalidatePath("/")
 
+    const duration = Math.round((Date.now() - startTime) / 1000)
+    const apiUnitsUsed = channelIds.length * 101 // search (100) + videos.list (~1)
+
+    await prisma.syncLog.create({
+      data: {
+        type: "manual",
+        status: "success",
+        channelsSynced: channelIds.length,
+        newVideos: syncedCount,
+        apiUnitsUsed,
+        duration,
+        triggeredBy: "user"
+      }
+    })
+
     return {
       success: true,
       message: `Synced ${syncedCount} videos successfully`,
@@ -160,6 +189,20 @@ export async function syncVideos(): Promise<{ success: boolean; message: string;
   } catch (error) {
     console.error("Sync error:", error)
     const message = error instanceof Error ? error.message : "Unknown error"
+    const duration = Math.round((Date.now() - startTime) / 1000)
+
+    await prisma.syncLog.create({
+      data: {
+        type: "manual",
+        status: "error",
+        channelsSynced: 0,
+        newVideos: 0,
+        apiUnitsUsed: 0,
+        errors: JSON.stringify([{ error: message }]),
+        duration,
+        triggeredBy: "user"
+      }
+    })
 
     if (message.includes("quota")) {
       return {
@@ -330,5 +373,41 @@ export async function deepSync(channelId: string): Promise<{ success: boolean; m
     })
 
     return { success: false, message, videoCount: 0 }
+  }
+}
+
+// Get recent sync logs for UI
+export async function getSyncLogs(limit = 10) {
+  return prisma.syncLog.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit
+  })
+}
+
+// Get sync status summary for Settings page
+export async function getSyncSummary() {
+  const [lastSync, subscriptions, totalVideos] = await Promise.all([
+    prisma.syncLog.findFirst({
+      where: { status: { not: "skipped" } },
+      orderBy: { createdAt: "desc" }
+    }),
+    prisma.subscription.count({ where: { deletedAt: null } }),
+    prisma.video.count()
+  ])
+
+  // Calculate next auto sync time (6 hours from last successful/partial sync)
+  let nextAutoSync: Date | null = null
+  if (lastSync) {
+    nextAutoSync = new Date(lastSync.createdAt.getTime() + SYNC_COOLDOWN_HOURS * 60 * 60 * 1000)
+    if (nextAutoSync < new Date()) {
+      nextAutoSync = null // Already due
+    }
+  }
+
+  return {
+    lastSync,
+    nextAutoSync,
+    channelCount: subscriptions,
+    totalVideos
   }
 }

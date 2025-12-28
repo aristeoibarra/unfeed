@@ -25,6 +25,32 @@ test.describe("Settings Page", () => {
       ).toBeVisible();
     });
 
+    test.skip("should display sync status section", async ({ page }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      await expect(
+        page.getByRole("heading", { name: /sync status/i })
+      ).toBeVisible();
+      await expect(page.getByText(/last sync/i)).toBeVisible();
+      await expect(page.getByText(/next auto sync/i)).toBeVisible();
+      await expect(page.getByText(/channels/i)).toBeVisible();
+      await expect(page.getByText(/videos cached/i)).toBeVisible();
+    });
+
+    test.skip("should display Sync Now button", async ({ page }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      await expect(
+        page.getByRole("button", { name: /sync now/i })
+      ).toBeVisible();
+    });
+
+    test.skip("should display recent sync logs", async ({ page }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      await expect(page.getByText(/recent sync logs/i)).toBeVisible();
+    });
+
     test.skip("should display feed settings section", async ({ page }) => {
       // Skip: Requires authentication
       await page.goto("/settings");
@@ -44,6 +70,27 @@ test.describe("Settings Page", () => {
       await expect(
         page.getByRole("button", { name: /clear history/i })
       ).toBeVisible();
+    });
+  });
+
+  test.describe("Sync Functionality", () => {
+    test.skip("should trigger sync when clicking Sync Now", async ({
+      page,
+    }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      const syncButton = page.getByRole("button", { name: /sync now/i });
+      await syncButton.click();
+      // Should show loading state
+      await expect(page.getByText(/syncing/i)).toBeVisible();
+    });
+
+    test.skip("should show sync logs with status icons", async ({ page }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      // Check for log entries (success, error, skipped indicators)
+      const logSection = page.locator("text=Recent Sync Logs").locator("..");
+      await expect(logSection).toBeVisible();
     });
   });
 

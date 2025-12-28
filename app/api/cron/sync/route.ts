@@ -4,6 +4,7 @@ import { getChannelVideos } from "@/lib/youtube"
 import { revalidatePath } from "next/cache"
 
 const CRON_SECRET = process.env.CRON_SECRET
+const SYNC_COOLDOWN_HOURS = 6
 
 interface SyncError {
   channelId: string
@@ -21,6 +22,8 @@ interface SyncResult {
   apiUnitsUsed: number
   cleanedNotifications: number
   errors: SyncError[]
+  skipped?: boolean
+  skipReason?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -42,7 +45,49 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const startTime = Date.now()
+
   try {
+    // Check for recent sync (< 6h) - skip if manual sync was done recently
+    const lastSync = await prisma.syncLog.findFirst({
+      orderBy: { createdAt: "desc" }
+    })
+
+    if (lastSync) {
+      const hoursSince = (Date.now() - lastSync.createdAt.getTime()) / (1000 * 60 * 60)
+      if (hoursSince < SYNC_COOLDOWN_HOURS) {
+        const totalVideos = await prisma.video.count()
+        const skipReason = `Recent sync exists (${hoursSince.toFixed(1)}h ago, type: ${lastSync.type})`
+
+        // Log the skipped sync
+        await prisma.syncLog.create({
+          data: {
+            type: "auto",
+            status: "skipped",
+            channelsSynced: 0,
+            newVideos: 0,
+            apiUnitsUsed: 0,
+            duration: 0,
+            triggeredBy: "cron"
+          }
+        })
+
+        return NextResponse.json<SyncResult>({
+          success: true,
+          timestamp: new Date().toISOString(),
+          channelsSynced: 0,
+          newVideos: 0,
+          newNotifications: 0,
+          totalVideosInCache: totalVideos,
+          apiUnitsUsed: 0,
+          cleanedNotifications: 0,
+          errors: [],
+          skipped: true,
+          skipReason
+        })
+      }
+    }
+
     // Obtener canales activos que no tengan error
     const subscriptions = await prisma.subscription.findMany({
       where: { deletedAt: null },
@@ -55,6 +100,21 @@ export async function GET(request: NextRequest) {
 
     if (channelsToSync.length === 0) {
       const totalVideos = await prisma.video.count()
+      const duration = Math.round((Date.now() - startTime) / 1000)
+
+      // Log empty sync
+      await prisma.syncLog.create({
+        data: {
+          type: "auto",
+          status: "success",
+          channelsSynced: 0,
+          newVideos: 0,
+          apiUnitsUsed: 0,
+          duration,
+          triggeredBy: "cron"
+        }
+      })
+
       return NextResponse.json<SyncResult>({
         success: true,
         timestamp: new Date().toISOString(),
@@ -215,6 +275,27 @@ export async function GET(request: NextRequest) {
     revalidatePath("/notifications")
 
     const totalVideosInCache = await prisma.video.count()
+    const duration = Math.round((Date.now() - startTime) / 1000)
+
+    // Log the sync result
+    const syncStatus = errors.length === 0
+      ? "success"
+      : errors.length < channelsSynced
+        ? "partial"
+        : "error"
+
+    await prisma.syncLog.create({
+      data: {
+        type: "auto",
+        status: syncStatus,
+        channelsSynced,
+        newVideos: totalNewVideos,
+        apiUnitsUsed,
+        errors: errors.length > 0 ? JSON.stringify(errors) : null,
+        duration,
+        triggeredBy: "cron"
+      }
+    })
 
     return NextResponse.json<SyncResult>({
       success: true,
@@ -230,6 +311,21 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Cron sync error:", error)
     const message = error instanceof Error ? error.message : "Unknown error"
+    const duration = Math.round((Date.now() - startTime) / 1000)
+
+    // Log the error
+    await prisma.syncLog.create({
+      data: {
+        type: "auto",
+        status: "error",
+        channelsSynced: 0,
+        newVideos: 0,
+        apiUnitsUsed: 0,
+        errors: JSON.stringify([{ error: message }]),
+        duration,
+        triggeredBy: "cron"
+      }
+    })
 
     return NextResponse.json(
       { error: `Sync failed: ${message}` },

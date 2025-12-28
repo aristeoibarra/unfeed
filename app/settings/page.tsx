@@ -1,10 +1,12 @@
 import { getSettings } from "@/actions/settings"
 import { getCategories } from "@/actions/categories"
+import { getSyncSummary, getSyncLogs } from "@/actions/sync"
 import { SettingsToggle } from "@/components/SettingsToggle"
 import { TimeLimitSettings } from "@/components/TimeLimitSettings"
 import { ClearHistoryButton } from "@/components/ClearHistoryButton"
 import { CategoryManager } from "@/components/CategoryManager"
-import { Settings, FolderOpen } from "lucide-react"
+import { SyncStatus } from "@/components/SyncStatus"
+import { Settings, FolderOpen, RefreshCw } from "lucide-react"
 
 export const metadata = {
   title: "Settings - Unfeed",
@@ -12,9 +14,11 @@ export const metadata = {
 }
 
 export default async function SettingsPage() {
-  const [settings, categories] = await Promise.all([
+  const [settings, categories, syncSummary, syncLogs] = await Promise.all([
     getSettings(),
-    getCategories()
+    getCategories(),
+    getSyncSummary(),
+    getSyncLogs(5)
   ])
 
   return (
@@ -33,6 +37,22 @@ export default async function SettingsPage() {
       </header>
 
       <div className="space-y-6">
+        {/* Sync Status */}
+        <section className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <RefreshCw className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Sync Status</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                View sync history and trigger manual sync
+              </p>
+            </div>
+          </div>
+          <SyncStatus summary={syncSummary} recentLogs={syncLogs} />
+        </section>
+
         {/* Categories */}
         <section className="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3 mb-4">
