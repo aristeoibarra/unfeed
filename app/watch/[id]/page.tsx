@@ -2,8 +2,10 @@ import { getVideo } from "@/actions/videos"
 import { isInWatchLater } from "@/actions/watch-later"
 import { getNote } from "@/actions/notes"
 import { getReaction } from "@/actions/reactions"
+import { getSettings } from "@/actions/settings"
 import { VideoPlayer } from "@/components/VideoPlayer"
 import { VideoNotes } from "@/components/VideoNotes"
+import { WatchTimeProgress } from "@/components/WatchTimeProgress"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { notFound } from "next/navigation"
@@ -30,27 +32,33 @@ export async function generateMetadata({ params }: WatchPageProps) {
 
 export default async function WatchPage({ params }: WatchPageProps) {
   const { id } = await params
-  const [video, inWatchLater, note, reaction] = await Promise.all([
+  const [video, inWatchLater, note, reaction, settings] = await Promise.all([
     getVideo(id),
     isInWatchLater(id),
     getNote(id),
-    getReaction(id)
+    getReaction(id),
+    getSettings()
   ])
 
   if (!video) {
     notFound()
   }
 
+  const hasLimitsConfigured = settings.dailyLimitMinutes !== null || settings.weeklyLimitMinutes !== null
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Back navigation - Clear for TDA users */}
-      <nav aria-label="Breadcrumb">
+      <nav aria-label="Breadcrumb" className="flex items-center justify-between">
         <Link href="/">
           <Button variant="ghost" size="sm" className="gap-2 -ml-2">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Back to feed
           </Button>
         </Link>
+        {hasLimitsConfigured && (
+          <WatchTimeProgress className="text-gray-600 dark:text-gray-300" />
+        )}
       </nav>
 
       {/* Main video player */}

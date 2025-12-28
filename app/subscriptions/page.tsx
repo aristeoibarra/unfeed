@@ -5,6 +5,7 @@ import { AddSubscription } from "@/components/AddSubscription"
 import { SubscriptionListWithCategories } from "@/components/SubscriptionListWithCategories"
 import { CategoryManager } from "@/components/CategoryManager"
 import { SettingsToggle } from "@/components/SettingsToggle"
+import { TimeLimitSettings } from "@/components/TimeLimitSettings"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, FolderOpen, Settings, Plus } from "lucide-react"
 
@@ -110,8 +111,14 @@ export default async function SubscriptionsPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <SettingsToggle initialHideDisliked={settings.hideDislikedFromFeed} />
+          <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
+            <TimeLimitSettings
+              initialDailyLimit={settings.dailyLimitMinutes}
+              initialWeeklyLimit={settings.weeklyLimitMinutes}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

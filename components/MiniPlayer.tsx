@@ -1,6 +1,7 @@
 "use client"
 
 import { usePlayer } from "@/contexts/PlayerContext"
+import { WatchTimeProgress } from "@/components/WatchTimeProgress"
 import Link from "next/link"
 
 function formatTime(seconds: number): string {
@@ -70,6 +71,11 @@ export function MiniPlayer() {
             {/* Time */}
             <div className="hidden sm:block text-xs text-gray-400">
               {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+
+            {/* Watch time progress */}
+            <div className="hidden md:block">
+              <WatchTimeProgress showLabel={false} />
             </div>
 
             {/* Controls */}

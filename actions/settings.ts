@@ -5,10 +5,27 @@ import { revalidatePath } from "next/cache"
 
 export interface AppSettings {
   hideDislikedFromFeed: boolean
+  dailyLimitMinutes: number | null
+  weeklyLimitMinutes: number | null
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
-  hideDislikedFromFeed: true
+export interface WatchTimeStatus {
+  dailyMinutes: number
+  weeklyMinutes: number
+  dailyLimit: number | null
+  weeklyLimit: number | null
+  dailyPercentage: number | null
+  weeklyPercentage: number | null
+  isDailyWarning: boolean
+  isWeeklyWarning: boolean
+  isDailyExceeded: boolean
+  isWeeklyExceeded: boolean
+}
+
+const DEFAULT_SETTINGS = {
+  hideDislikedFromFeed: true,
+  dailyLimitMinutes: null,
+  weeklyLimitMinutes: null
 }
 
 async function getOrCreateSettings() {
@@ -26,7 +43,9 @@ async function getOrCreateSettings() {
 export async function getSettings(): Promise<AppSettings> {
   const settings = await getOrCreateSettings()
   return {
-    hideDislikedFromFeed: settings.hideDislikedFromFeed
+    hideDislikedFromFeed: settings.hideDislikedFromFeed,
+    dailyLimitMinutes: settings.dailyLimitMinutes,
+    weeklyLimitMinutes: settings.weeklyLimitMinutes
   }
 }
 
@@ -39,9 +58,12 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
   })
 
   revalidatePath("/")
+  revalidatePath("/subscriptions")
 
   return {
-    hideDislikedFromFeed: updated.hideDislikedFromFeed
+    hideDislikedFromFeed: updated.hideDislikedFromFeed,
+    dailyLimitMinutes: updated.dailyLimitMinutes,
+    weeklyLimitMinutes: updated.weeklyLimitMinutes
   }
 }
 
@@ -56,4 +78,80 @@ export async function toggleHideDislikedFromFeed(): Promise<boolean> {
   revalidatePath("/")
 
   return updated.hideDislikedFromFeed
+}
+
+export async function updateTimeLimits(
+  dailyLimitMinutes: number | null,
+  weeklyLimitMinutes: number | null
+): Promise<AppSettings> {
+  return updateSettings({ dailyLimitMinutes, weeklyLimitMinutes })
+}
+
+export async function getDailyWatchTime(): Promise<number> {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const result = await prisma.watchHistory.aggregate({
+    where: {
+      watchedAt: { gte: today }
+    },
+    _sum: { progress: true }
+  })
+
+  // Return minutes (progress is stored in seconds)
+  return Math.floor((result._sum.progress || 0) / 60)
+}
+
+export async function getWeeklyWatchTime(): Promise<number> {
+  const now = new Date()
+  const startOfWeek = new Date(now)
+  // Get Monday of current week
+  const day = startOfWeek.getDay()
+  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
+  startOfWeek.setDate(diff)
+  startOfWeek.setHours(0, 0, 0, 0)
+
+  const result = await prisma.watchHistory.aggregate({
+    where: {
+      watchedAt: { gte: startOfWeek }
+    },
+    _sum: { progress: true }
+  })
+
+  // Return minutes (progress is stored in seconds)
+  return Math.floor((result._sum.progress || 0) / 60)
+}
+
+export async function getWatchTimeStatus(): Promise<WatchTimeStatus> {
+  const [settings, dailyMinutes, weeklyMinutes] = await Promise.all([
+    getSettings(),
+    getDailyWatchTime(),
+    getWeeklyWatchTime()
+  ])
+
+  const { dailyLimitMinutes, weeklyLimitMinutes } = settings
+
+  const dailyPercentage = dailyLimitMinutes
+    ? Math.min(100, (dailyMinutes / dailyLimitMinutes) * 100)
+    : null
+
+  const weeklyPercentage = weeklyLimitMinutes
+    ? Math.min(100, (weeklyMinutes / weeklyLimitMinutes) * 100)
+    : null
+
+  // Warning at 80%, exceeded at 100%
+  const WARNING_THRESHOLD = 80
+
+  return {
+    dailyMinutes,
+    weeklyMinutes,
+    dailyLimit: dailyLimitMinutes,
+    weeklyLimit: weeklyLimitMinutes,
+    dailyPercentage,
+    weeklyPercentage,
+    isDailyWarning: dailyPercentage !== null && dailyPercentage >= WARNING_THRESHOLD && dailyPercentage < 100,
+    isWeeklyWarning: weeklyPercentage !== null && weeklyPercentage >= WARNING_THRESHOLD && weeklyPercentage < 100,
+    isDailyExceeded: dailyPercentage !== null && dailyPercentage >= 100,
+    isWeeklyExceeded: weeklyPercentage !== null && weeklyPercentage >= 100
+  }
 }
