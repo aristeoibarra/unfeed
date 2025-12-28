@@ -179,7 +179,42 @@ bun run dev      # Development server
 bun run build    # Production build
 bun run start    # Start production
 bun run lint     # Run linter
+bun run tunnel   # Expose dev server to internet (for PWA testing)
 ```
+
+## PWA Testing on Mobile
+
+To test PWA features (Service Workers, install prompts, notifications) on a real Android device during development:
+
+### Prerequisites
+
+```bash
+# Install cloudflared (once)
+brew install cloudflared
+```
+
+### Usage
+
+```bash
+# Terminal 1: Run dev server
+bun run dev
+
+# Terminal 2: Expose to internet with HTTPS
+bun run tunnel
+```
+
+This outputs a public URL like `https://random-words.trycloudflare.com`
+
+### Test on Android
+
+1. Open the URL in Chrome on your Android device
+2. Install as PWA (Add to Home Screen)
+3. Test features: audio mode, notifications, media controls, etc.
+
+**Why cloudflared?**
+- Free, no account required
+- Provides HTTPS (required for PWA features)
+- Fast (Cloudflare edge network)
 
 ## Project Structure
 
