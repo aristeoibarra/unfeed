@@ -32,7 +32,7 @@ export function LimitReachedModal() {
 
   if (!status) return null
 
-  const { dailyMinutes, weeklyMinutes, dailyLimit, weeklyLimit, isDailyExceeded, isWeeklyExceeded } = status
+  const { dailyMinutes, weeklyMinutes, dailyLimit, weeklyLimit, isDailyExceeded } = status
 
   const isDaily = isDailyExceeded
   const limitType = isDaily ? "daily" : "weekly"

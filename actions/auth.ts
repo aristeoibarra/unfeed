@@ -35,32 +35,23 @@ export async function loginAction(
   const authEmail = process.env.AUTH_EMAIL
   const authPasswordHash = process.env.AUTH_PASSWORD_HASH
 
-  // Debug log (remove in production)
-  console.log("[Auth Debug] AUTH_EMAIL exists:", !!authEmail)
-  console.log("[Auth Debug] AUTH_PASSWORD_HASH exists:", !!authPasswordHash)
-  console.log("[Auth Debug] AUTH_PASSWORD_HASH length:", authPasswordHash?.length)
-
   if (!authEmail || !authPasswordHash) {
-    console.error("[Auth Error] Missing AUTH_EMAIL or AUTH_PASSWORD_HASH")
     return { error: "Error de configuración del servidor" }
   }
 
   // Verify email
   if (email.toLowerCase() !== authEmail.toLowerCase()) {
-    console.log("[Auth Debug] Email mismatch")
     return { error: "Credenciales inválidas" }
   }
 
   // Verify password
   try {
     const passwordMatch = await bcrypt.compare(password, authPasswordHash)
-    console.log("[Auth Debug] Password match:", passwordMatch)
 
     if (!passwordMatch) {
       return { error: "Credenciales inválidas" }
     }
-  } catch (err) {
-    console.error("[Auth Error] bcrypt.compare failed:", err)
+  } catch {
     return { error: "Error al verificar credenciales" }
   }
 

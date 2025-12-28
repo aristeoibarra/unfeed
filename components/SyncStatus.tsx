@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useTransition } from "react"
 import { syncVideos } from "@/actions/sync"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
@@ -82,8 +82,8 @@ function getStatusColor(status: string) {
 export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
-  const [logs, setLogs] = useState(recentLogs)
-  const [syncInfo, setSyncInfo] = useState(summary)
+  const logs = recentLogs
+  const syncInfo = summary
 
   async function handleSync() {
     startTransition(async () => {
