@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { exec } from "child_process"
 import { promisify } from "util"
+import { prisma } from "@/lib/db"
 
 const execAsync = promisify(exec)
 
 // Validate YouTube video ID format (11 alphanumeric characters with hyphens and underscores)
 const VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/
 
+// Cache TTL: 5 hours in milliseconds
+const CACHE_TTL_MS = 5 * 60 * 60 * 1000
+
 interface AudioResponse {
   url: string
+  cached?: boolean
 }
 
 interface ErrorResponse {
@@ -30,6 +35,15 @@ export async function GET(
   }
 
   try {
+    // Check cache first
+    const cached = await prisma.audioCache.findUnique({
+      where: { videoId },
+    })
+
+    if (cached && cached.expiresAt > new Date()) {
+      return NextResponse.json({ url: cached.audioUrl, cached: true })
+    }
+
     // Execute yt-dlp to get the audio stream URL
     // Using bestaudio format with m4a preference for better compatibility
     const { stdout, stderr } = await execAsync(
@@ -50,8 +64,16 @@ export async function GET(
       )
     }
 
+    // Save to cache with 5-hour TTL
+    const expiresAt = new Date(Date.now() + CACHE_TTL_MS)
+    await prisma.audioCache.upsert({
+      where: { videoId },
+      update: { audioUrl, expiresAt },
+      create: { videoId, audioUrl, expiresAt },
+    })
+
     // Return the audio stream URL
-    return NextResponse.json({ url: audioUrl })
+    return NextResponse.json({ url: audioUrl, cached: false })
   } catch (error) {
     console.error("Error executing yt-dlp:", error)
 

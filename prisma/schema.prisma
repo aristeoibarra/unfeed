@@ -181,3 +181,12 @@ model PlaylistVideo {
   @@index([playlistId])
   @@index([position])
 }
+
+model AudioCache {
+  id        Int      @id @default(autoincrement())
+  videoId   String   @unique
+  audioUrl  String
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}

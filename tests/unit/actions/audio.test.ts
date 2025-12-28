@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { prismaMock } from "../../mocks/prisma";
 
 describe("actions/audio", () => {
   beforeEach(() => {
@@ -30,6 +31,40 @@ describe("actions/audio", () => {
       // Too long
       const result2 = await getAudioUrl("abc123def456789");
       expect(result2).toBeNull();
+    });
+
+    it("returns cached URL when cache is valid", async () => {
+      const futureDate = new Date(Date.now() + 1000 * 60 * 60); // 1 hour in future
+      prismaMock.audioCache.findUnique.mockResolvedValueOnce({
+        id: 1,
+        videoId: "dQw4w9WgXcQ",
+        audioUrl: "https://cached-audio-url.com",
+        expiresAt: futureDate,
+      });
+
+      const { getAudioUrl } = await import("@/actions/audio");
+      const result = await getAudioUrl("dQw4w9WgXcQ");
+
+      expect(result).toBe("https://cached-audio-url.com");
+      expect(prismaMock.audioCache.findUnique).toHaveBeenCalledWith({
+        where: { videoId: "dQw4w9WgXcQ" },
+      });
+    });
+
+    it("does not return expired cache", async () => {
+      const pastDate = new Date(Date.now() - 1000 * 60 * 60); // 1 hour in past
+      prismaMock.audioCache.findUnique.mockResolvedValueOnce({
+        id: 1,
+        videoId: "dQw4w9WgXcQ",
+        audioUrl: "https://expired-audio-url.com",
+        expiresAt: pastDate,
+      });
+
+      const { getAudioUrl } = await import("@/actions/audio");
+      const result = await getAudioUrl("dQw4w9WgXcQ");
+
+      // Should not return the expired cache (yt-dlp will fail since it's not mocked)
+      expect(result).toBeNull();
     });
   });
 

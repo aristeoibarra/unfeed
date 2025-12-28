@@ -2,16 +2,21 @@
 
 import { exec } from "child_process"
 import { promisify } from "util"
+import { prisma } from "@/lib/db"
 
 const execAsync = promisify(exec)
 
 // Validate YouTube video ID format (11 alphanumeric characters with hyphens and underscores)
 const VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/
 
+// Cache TTL: 5 hours in milliseconds
+const CACHE_TTL_MS = 5 * 60 * 60 * 1000
+
 /**
  * Get audio URL for a YouTube video using yt-dlp directly
  *
  * This requires yt-dlp to be installed on the server.
+ * Results are cached for 5 hours to reduce yt-dlp calls.
  *
  * @param videoId - YouTube video ID (11 characters)
  * @returns Audio stream URL or null if unavailable
@@ -24,6 +29,15 @@ export async function getAudioUrl(videoId: string): Promise<string | null> {
   }
 
   try {
+    // Check cache first
+    const cached = await prisma.audioCache.findUnique({
+      where: { videoId },
+    })
+
+    if (cached && cached.expiresAt > new Date()) {
+      return cached.audioUrl
+    }
+
     // Path to cookies file and yt-dlp binary
     const cookiesPath = process.env.YT_DLP_COOKIES_PATH || "/home/ec2-user/cookies_youtube.txt"
     const ytdlpPath = process.env.YT_DLP_PATH || "/home/ec2-user/.local/bin/yt-dlp"
@@ -44,6 +58,14 @@ export async function getAudioUrl(videoId: string): Promise<string | null> {
       console.error("yt-dlp stderr:", stderr)
       return null
     }
+
+    // Save to cache with 5-hour TTL
+    const expiresAt = new Date(Date.now() + CACHE_TTL_MS)
+    await prisma.audioCache.upsert({
+      where: { videoId },
+      update: { audioUrl, expiresAt },
+      create: { videoId, audioUrl, expiresAt },
+    })
 
     return audioUrl
   } catch (error) {
