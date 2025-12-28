@@ -46,6 +46,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
   const progressRef = useRef<HTMLDivElement>(null)
 
   // Handle loading state - check if audio is ready to play
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync loading state with audio element */
   useEffect(() => {
     const audio = audioRef.current
 
@@ -55,25 +56,11 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       return
     }
 
-    const handleCanPlay = () => {
-      setIsLoading(false)
-    }
-
-    const handleCanPlayThrough = () => {
-      setIsLoading(false)
-    }
-
-    const handleWaiting = () => {
-      setIsLoading(true)
-    }
-
-    const handlePlaying = () => {
-      setIsLoading(false)
-    }
-
-    const handleLoadedData = () => {
-      setIsLoading(false)
-    }
+    const handleCanPlay = () => setIsLoading(false)
+    const handleCanPlayThrough = () => setIsLoading(false)
+    const handleWaiting = () => setIsLoading(true)
+    const handlePlaying = () => setIsLoading(false)
+    const handleLoadedData = () => setIsLoading(false)
 
     audio.addEventListener("canplay", handleCanPlay)
     audio.addEventListener("canplaythrough", handleCanPlayThrough)
@@ -81,8 +68,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     audio.addEventListener("playing", handlePlaying)
     audio.addEventListener("loadeddata", handleLoadedData)
 
-    // Check if audio is already ready and has correct source
-    // readyState: 0=HAVE_NOTHING, 1=HAVE_METADATA, 2=HAVE_CURRENT_DATA, 3=HAVE_FUTURE_DATA, 4=HAVE_ENOUGH_DATA
+    // Check if audio is already ready
     if (audio.readyState >= 2 && audio.src) {
       setIsLoading(false)
     }
@@ -95,6 +81,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       audio.removeEventListener("loadeddata", handleLoadedData)
     }
   }, [audioRef, audioUrl])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !duration) return
