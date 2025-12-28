@@ -1,11 +1,12 @@
 import { getSubscriptions } from "@/actions/subscriptions"
 import { getCategories } from "@/actions/categories"
 import { getVideoIdsWithNotes } from "@/actions/notes"
-import { getVideos } from "@/actions/videos"
+import { getVideos, type SortOption } from "@/actions/videos"
 import { getWatchedVideoIds } from "@/actions/watched"
 import { getReactions, getDislikedVideoIds } from "@/actions/reactions"
 import { getSettings } from "@/actions/settings"
 import { SubscriptionFilter } from "@/components/SubscriptionFilter"
+import { HomeFilters } from "@/components/HomeFilters"
 import { VideoFeed } from "@/components/VideoFeed"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
@@ -13,21 +14,38 @@ import { Users, Plus } from "lucide-react"
 import Link from "next/link"
 
 interface HomeProps {
-  searchParams: Promise<{ channels?: string }>
+  searchParams: Promise<{
+    channels?: string
+    sort?: SortOption
+    unwatched?: string
+    q?: string
+  }>
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { channels } = await searchParams
+  const { channels, sort, unwatched, q } = await searchParams
   const filterChannelIds = channels ? channels.split(",") : undefined
+  const unwatchedOnly = unwatched === "true"
 
-  const [result, watchedIds, noteIds, subscriptions, categories, settings] = await Promise.all([
-    getVideos(filterChannelIds),
+  const [watchedIds, noteIds, subscriptions, categories, settings] = await Promise.all([
     getWatchedVideoIds(),
     getVideoIdsWithNotes(),
     getSubscriptions(),
     getCategories(),
     getSettings()
   ])
+
+  // Get videos with filters
+  const result = await getVideos(
+    {
+      channelIds: filterChannelIds,
+      sort: sort || "newest",
+      unwatchedOnly,
+      search: q
+    },
+    1,
+    unwatchedOnly ? watchedIds : undefined
+  )
 
   // Filter out disliked videos if setting is enabled
   let videosToShow = result.videos
@@ -47,27 +65,11 @@ export default async function Home({ searchParams }: HomeProps) {
   const noteSet = new Set(noteIds)
 
   return (
-    <div className="space-y-8">
-      {/* Page header - Clear hierarchy for TDA users */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Your Feed</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-            {subscriptions.length} subscription{subscriptions.length !== 1 ? "s" : ""}
-            {videosToShow.length > 0 && ` - ${videosToShow.length} video${videosToShow.length !== 1 ? "s" : ""}`}
-          </p>
-        </div>
-        <Link href="/subscriptions">
-          <Button variant="outline" size="sm">
-            <Users className="h-4 w-4" aria-hidden="true" />
-            Manage subscriptions
-          </Button>
-        </Link>
-      </header>
-
-      {/* Filter section - Only show if there are subscriptions */}
+    <div className="space-y-6">
+      {/* Search, sort, and filter section - Only show if there are subscriptions */}
       {subscriptions.length > 0 && (
-        <section aria-label="Filter videos">
+        <section aria-label="Filter videos" className="space-y-4">
+          <HomeFilters />
           <SubscriptionFilter subscriptions={subscriptions} categories={categories} />
         </section>
       )}
@@ -100,7 +102,13 @@ export default async function Home({ searchParams }: HomeProps) {
           watchedIds={watchedSet}
           noteIds={noteSet}
           reactions={reactions}
-          filterChannelIds={filterChannelIds}
+          filters={{
+            channelIds: filterChannelIds,
+            sort: sort || "newest",
+            unwatchedOnly,
+            search: q
+          }}
+          watchedVideoIds={unwatchedOnly ? watchedIds : undefined}
         />
       )}
     </div>

@@ -6,7 +6,6 @@ import { getSession } from "@/lib/auth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
 import { DesktopNav } from "@/components/DesktopNav";
-import { VideoSearch } from "@/components/VideoSearch";
 import { UserMenu } from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
@@ -99,9 +98,8 @@ export default async function RootLayout({
                   {/* Center: Desktop navigation */}
                   <DesktopNav />
 
-                  {/* Right: Search + Notifications + Logout */}
+                  {/* Right: Notifications + User menu */}
                   <div className="flex items-center gap-2">
-                    <VideoSearch />
                     <NotificationBell
                       initialCount={unreadCount}
                       initialNotifications={recentNotifications}

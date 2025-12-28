@@ -62,7 +62,7 @@ export default async function SubscriptionPage({ params }: SubscriptionPageProps
           watchedIds={watchedSet}
           noteIds={noteSet}
           reactions={reactions}
-          filterChannelIds={[channelId]}
+          filters={{ channelIds: [channelId] }}
         />
       )}
 

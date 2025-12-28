@@ -7,6 +7,15 @@ export type { VideoInfo }
 
 const VIDEOS_PER_PAGE = 24
 
+export type SortOption = "newest" | "oldest" | "most_likes" | "longest" | "shortest"
+
+export interface VideoFilters {
+  channelIds?: string[]
+  sort?: SortOption
+  unwatchedOnly?: boolean
+  search?: string
+}
+
 export interface CachedVideosResult {
   videos: VideoInfo[]
   hasMore: boolean
@@ -53,7 +62,29 @@ function formatVideo(v: {
   }
 }
 
-export async function getVideos(filterChannelIds?: string[], page: number = 1): Promise<CachedVideosResult> {
+function getSortOrder(sort?: SortOption): { orderBy: Record<string, "asc" | "desc"> } {
+  switch (sort) {
+    case "oldest":
+      return { orderBy: { publishedAt: "asc" } }
+    case "most_likes":
+      return { orderBy: { likeCount: "desc" } }
+    case "longest":
+      return { orderBy: { duration: "desc" } }
+    case "shortest":
+      return { orderBy: { duration: "asc" } }
+    case "newest":
+    default:
+      return { orderBy: { publishedAt: "desc" } }
+  }
+}
+
+export async function getVideos(
+  filters: VideoFilters = {},
+  page: number = 1,
+  watchedVideoIds?: string[]
+): Promise<CachedVideosResult> {
+  const { channelIds: filterChannelIds, sort, unwatchedOnly, search } = filters
+
   // Solo canales activos (no eliminados)
   let channelIds = await getActiveChannelIds()
 
@@ -66,21 +97,34 @@ export async function getVideos(filterChannelIds?: string[], page: number = 1): 
   }
 
   const skip = (page - 1) * VIDEOS_PER_PAGE
+  const { orderBy } = getSortOrder(sort)
+
+  // Build where clause
+  const where: Record<string, unknown> = {
+    channelId: { in: channelIds }
+  }
+
+  // Add search filter
+  if (search && search.trim().length > 0) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { channelName: { contains: search, mode: "insensitive" } }
+    ]
+  }
+
+  // Add unwatched filter
+  if (unwatchedOnly && watchedVideoIds && watchedVideoIds.length > 0) {
+    where.videoId = { notIn: watchedVideoIds }
+  }
 
   const [videos, total] = await Promise.all([
     prisma.video.findMany({
-      where: {
-        channelId: { in: channelIds }
-      },
-      orderBy: { publishedAt: "desc" },
+      where,
+      orderBy,
       skip,
       take: VIDEOS_PER_PAGE
     }),
-    prisma.video.count({
-      where: {
-        channelId: { in: channelIds }
-      }
-    })
+    prisma.video.count({ where })
   ])
 
   return {
@@ -91,10 +135,11 @@ export async function getVideos(filterChannelIds?: string[], page: number = 1): 
 }
 
 export async function loadMoreVideos(
-  filterChannelIds?: string[],
-  page: number = 2
+  filters: VideoFilters = {},
+  page: number = 2,
+  watchedVideoIds?: string[]
 ): Promise<CachedVideosResult> {
-  return getVideos(filterChannelIds, page)
+  return getVideos(filters, page, watchedVideoIds)
 }
 
 export async function getVideosByChannel(channelId: string, page: number = 1): Promise<CachedVideosResult> {

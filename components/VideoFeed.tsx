@@ -5,7 +5,7 @@ import { Loader2, RefreshCw, Video } from "lucide-react"
 import { VideoCard, VideoCardSkeleton } from "./VideoCard"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
-import { loadMoreVideos, type VideoInfo } from "@/actions/videos"
+import { loadMoreVideos, type VideoInfo, type VideoFilters } from "@/actions/videos"
 
 type ReactionType = "like" | "dislike"
 
@@ -15,7 +15,8 @@ interface VideoFeedProps {
   watchedIds: Set<string>
   noteIds: Set<string>
   reactions: Map<string, ReactionType>
-  filterChannelIds?: string[]
+  filters: VideoFilters
+  watchedVideoIds?: string[]
 }
 
 export function VideoFeed({
@@ -24,7 +25,8 @@ export function VideoFeed({
   watchedIds,
   noteIds,
   reactions,
-  filterChannelIds,
+  filters,
+  watchedVideoIds,
 }: VideoFeedProps) {
   const [videos, setVideos] = useState(initialVideos)
   const [hasMore, setHasMore] = useState(initialHasMore)
@@ -36,13 +38,13 @@ export function VideoFeed({
     setVideos(initialVideos)
     setHasMore(initialHasMore)
     setPage(1)
-  }, [initialVideos, initialHasMore, filterChannelIds])
+  }, [initialVideos, initialHasMore, filters])
 
   async function handleLoadMore() {
     setLoading(true)
     try {
       const nextPage = page + 1
-      const result = await loadMoreVideos(filterChannelIds, nextPage)
+      const result = await loadMoreVideos(filters, nextPage, watchedVideoIds)
 
       setVideos([...videos, ...result.videos])
       setHasMore(result.hasMore)
