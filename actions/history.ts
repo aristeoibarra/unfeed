@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { markAsWatched } from "./watched"
 
 export interface HistoryEntry {
   id: number
@@ -70,21 +71,30 @@ export async function addToHistory(videoId: string, videoData: {
 export async function updateProgress(historyId: number, progress: number, duration: number): Promise<void> {
   const completed = duration > 0 && (progress / duration) >= 0.9
 
-  await prisma.watchHistory.update({
+  const entry = await prisma.watchHistory.update({
     where: { id: historyId },
-    data: { progress, completed }
+    data: { progress, completed },
+    select: { videoId: true, completed: true }
   })
+
+  // Auto-sync: mark video as watched when completed (>90%)
+  if (completed) {
+    await markAsWatched(entry.videoId)
+  }
 }
 
 export async function getHistory(page: number = 1, search?: string) {
   const skip = (page - 1) * HISTORY_PER_PAGE
 
+  // Only show non-deleted entries in UI
+  const baseWhere = { deletedAt: null }
   const where = search ? {
+    ...baseWhere,
     OR: [
       { title: { contains: search } },
       { channelName: { contains: search } }
     ]
-  } : {}
+  } : baseWhere
 
   const [entries, total] = await Promise.all([
     prisma.watchHistory.findMany({
@@ -111,6 +121,7 @@ export async function getHistory(page: number = 1, search?: string) {
 export async function searchHistory(query: string) {
   const entries = await prisma.watchHistory.findMany({
     where: {
+      deletedAt: null,
       OR: [
         { title: { contains: query } },
         { channelName: { contains: query } }
@@ -125,20 +136,27 @@ export async function searchHistory(query: string) {
 }
 
 export async function removeFromHistory(historyId: number): Promise<void> {
-  await prisma.watchHistory.delete({
-    where: { id: historyId }
+  // Soft delete: mark as deleted but keep for stats
+  await prisma.watchHistory.update({
+    where: { id: historyId },
+    data: { deletedAt: new Date() }
   })
 
   revalidatePath("/history")
 }
 
 export async function clearHistory(): Promise<void> {
-  await prisma.watchHistory.deleteMany()
+  // Soft delete all: mark as deleted but keep for stats
+  await prisma.watchHistory.updateMany({
+    where: { deletedAt: null },
+    data: { deletedAt: new Date() }
+  })
   revalidatePath("/history")
 }
 
 export async function getHistoryCount(): Promise<number> {
   const uniqueVideos = await prisma.watchHistory.findMany({
+    where: { deletedAt: null },
     distinct: ['videoId'],
     select: { videoId: true }
   })
@@ -153,7 +171,7 @@ export async function getVideoProgress(videoId: string): Promise<{
   completed: boolean
 } | null> {
   const entry = await prisma.watchHistory.findFirst({
-    where: { videoId },
+    where: { videoId, deletedAt: null },
     orderBy: { watchedAt: "desc" },
     select: {
       id: true,

@@ -1,7 +1,6 @@
 "use client"
 
 import { Player } from "./Player"
-import { WatchedButton } from "./WatchedButton"
 import { WatchLaterButton } from "./WatchLaterButton"
 import { LikeDislikeButton } from "./LikeDislikeButton"
 import { AddToPlaylistButton } from "./AddToPlaylistButton"
@@ -28,7 +27,6 @@ interface Video {
 interface VideoPlayerProps {
   videoId: string
   video: Video
-  initialWatched: boolean
   initialInWatchLater: boolean
   initialReaction: ReactionType | null
 }
@@ -36,11 +34,9 @@ interface VideoPlayerProps {
 export function VideoPlayer({
   videoId,
   video,
-  initialWatched,
   initialInWatchLater,
   initialReaction,
 }: VideoPlayerProps) {
-  const [isWatched, setIsWatched] = useState(initialWatched)
   const [showResumeDialog, setShowResumeDialog] = useState(false)
   const [savedProgress, setSavedProgress] = useState<number | null>(null)
   const [resumeTime, setResumeTime] = useState(0)
@@ -161,7 +157,6 @@ export function VideoPlayer({
           isInitialized && (
             <Player
               videoId={videoId}
-              onWatched={() => setIsWatched(true)}
               initialTime={resumeTime}
             />
           )
@@ -218,7 +213,6 @@ export function VideoPlayer({
             <LikeDislikeButton videoId={videoId} initialReaction={initialReaction} />
             <AddToPlaylistButton video={video} />
             <WatchLaterButton video={video} isInWatchLater={initialInWatchLater} />
-            <WatchedButton videoId={videoId} isWatched={isWatched} />
           </nav>
         </div>
 

@@ -128,10 +128,12 @@ model VideoReaction {
 model Settings {
   id                    Int     @id @default(autoincrement())
   hideDislikedFromFeed  Boolean @default(true)  // Ocultar videos con dislike del feed
+  dailyLimitMinutes     Int?    // null = no limit
+  weeklyLimitMinutes    Int?    // null = no limit
 }
 
 model WatchHistory {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   videoId     String
 
   // Datos del video (para mostrar sin JOIN)
@@ -139,15 +141,19 @@ model WatchHistory {
   thumbnail   String
   channelId   String
   channelName String
-  duration    Int?     // Duración total en segundos
+  duration    Int?      // Duración total en segundos
 
   // Datos de visualización
-  watchedAt   DateTime @default(now())
-  progress    Int?     // Segundos vistos (opcional)
-  completed   Boolean  @default(false) // Si vio >90%
+  watchedAt   DateTime  @default(now())
+  progress    Int?      // Segundos vistos (opcional)
+  completed   Boolean   @default(false) // Si vio >90%
+
+  // Soft delete (null = visible, timestamp = "deleted" from UI but kept for stats)
+  deletedAt   DateTime?
 
   @@index([videoId])
   @@index([watchedAt(sort: Desc)])
+  @@index([deletedAt])
 }
 
 model Playlist {

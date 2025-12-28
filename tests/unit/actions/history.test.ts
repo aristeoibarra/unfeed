@@ -6,6 +6,11 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+// Mock watched actions
+vi.mock("@/actions/watched", () => ({
+  markAsWatched: vi.fn(),
+}));
+
 import {
   addToHistory,
   updateProgress,
@@ -94,35 +99,49 @@ describe("actions/history", () => {
 
   describe("updateProgress", () => {
     it("updates progress and marks as not completed when below 90%", async () => {
-      prismaMock.watchHistory.update.mockResolvedValue({});
+      prismaMock.watchHistory.update.mockResolvedValue({
+        videoId: "abc123def45",
+        completed: false,
+      });
 
       await updateProgress(1, 100, 300); // 33% progress
 
       expect(prismaMock.watchHistory.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { progress: 100, completed: false },
+        select: { videoId: true, completed: true },
       });
     });
 
-    it("marks as completed when progress is 90% or more", async () => {
-      prismaMock.watchHistory.update.mockResolvedValue({});
+    it("marks as completed when progress is 90% or more and auto-syncs WatchedVideo", async () => {
+      const { markAsWatched } = await import("@/actions/watched");
+      prismaMock.watchHistory.update.mockResolvedValue({
+        videoId: "abc123def45",
+        completed: true,
+      });
 
       await updateProgress(1, 270, 300); // 90% progress
 
       expect(prismaMock.watchHistory.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { progress: 270, completed: true },
+        select: { videoId: true, completed: true },
       });
+      expect(markAsWatched).toHaveBeenCalledWith("abc123def45");
     });
 
     it("handles zero duration", async () => {
-      prismaMock.watchHistory.update.mockResolvedValue({});
+      prismaMock.watchHistory.update.mockResolvedValue({
+        videoId: "abc123def45",
+        completed: false,
+      });
 
       await updateProgress(1, 100, 0);
 
       expect(prismaMock.watchHistory.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { progress: 100, completed: false },
+        select: { videoId: true, completed: true },
       });
     });
   });
@@ -156,7 +175,7 @@ describe("actions/history", () => {
       expect(result.total).toBe(1);
     });
 
-    it("applies search filter", async () => {
+    it("applies search filter with deletedAt null", async () => {
       prismaMock.watchHistory.findMany
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
@@ -166,6 +185,7 @@ describe("actions/history", () => {
       expect(prismaMock.watchHistory.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
+            deletedAt: null,
             OR: [
               { title: { contains: "test search" } },
               { channelName: { contains: "test search" } },
@@ -177,7 +197,7 @@ describe("actions/history", () => {
   });
 
   describe("searchHistory", () => {
-    it("searches by title and channel name", async () => {
+    it("searches by title and channel name with deletedAt filter", async () => {
       const mockEntries = [
         {
           id: 1,
@@ -201,6 +221,7 @@ describe("actions/history", () => {
       expect(prismaMock.watchHistory.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
+            deletedAt: null,
             OR: [
               { title: { contains: "Matching" } },
               { channelName: { contains: "Matching" } },
@@ -213,29 +234,33 @@ describe("actions/history", () => {
   });
 
   describe("removeFromHistory", () => {
-    it("deletes history entry by id", async () => {
-      prismaMock.watchHistory.delete.mockResolvedValue({});
+    it("soft deletes history entry by setting deletedAt", async () => {
+      prismaMock.watchHistory.update.mockResolvedValue({});
 
       await removeFromHistory(1);
 
-      expect(prismaMock.watchHistory.delete).toHaveBeenCalledWith({
+      expect(prismaMock.watchHistory.update).toHaveBeenCalledWith({
         where: { id: 1 },
+        data: { deletedAt: expect.any(Date) },
       });
     });
   });
 
   describe("clearHistory", () => {
-    it("deletes all history entries", async () => {
-      prismaMock.watchHistory.deleteMany.mockResolvedValue({ count: 10 });
+    it("soft deletes all visible history entries", async () => {
+      prismaMock.watchHistory.updateMany.mockResolvedValue({ count: 10 });
 
       await clearHistory();
 
-      expect(prismaMock.watchHistory.deleteMany).toHaveBeenCalled();
+      expect(prismaMock.watchHistory.updateMany).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+        data: { deletedAt: expect.any(Date) },
+      });
     });
   });
 
   describe("getHistoryCount", () => {
-    it("returns count of unique videos", async () => {
+    it("returns count of unique non-deleted videos", async () => {
       prismaMock.watchHistory.findMany.mockResolvedValue([
         { videoId: "v1" },
         { videoId: "v2" },
@@ -245,11 +270,16 @@ describe("actions/history", () => {
       const count = await getHistoryCount();
 
       expect(count).toBe(3);
+      expect(prismaMock.watchHistory.findMany).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+        distinct: ["videoId"],
+        select: { videoId: true },
+      });
     });
   });
 
   describe("getVideoProgress", () => {
-    it("returns progress for existing video", async () => {
+    it("returns progress for existing non-deleted video", async () => {
       prismaMock.watchHistory.findFirst.mockResolvedValue({
         id: 1,
         progress: 150,
@@ -264,6 +294,16 @@ describe("actions/history", () => {
         progress: 150,
         duration: 300,
         completed: false,
+      });
+      expect(prismaMock.watchHistory.findFirst).toHaveBeenCalledWith({
+        where: { videoId: "video123", deletedAt: null },
+        orderBy: { watchedAt: "desc" },
+        select: {
+          id: true,
+          progress: true,
+          duration: true,
+          completed: true,
+        },
       });
     });
 

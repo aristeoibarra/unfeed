@@ -1,5 +1,4 @@
 import { getVideo } from "@/actions/videos"
-import { isWatched } from "@/actions/watched"
 import { isInWatchLater } from "@/actions/watch-later"
 import { getNote } from "@/actions/notes"
 import { getReaction } from "@/actions/reactions"
@@ -31,9 +30,8 @@ export async function generateMetadata({ params }: WatchPageProps) {
 
 export default async function WatchPage({ params }: WatchPageProps) {
   const { id } = await params
-  const [video, watched, inWatchLater, note, reaction] = await Promise.all([
+  const [video, inWatchLater, note, reaction] = await Promise.all([
     getVideo(id),
-    isWatched(id),
     isInWatchLater(id),
     getNote(id),
     getReaction(id)
@@ -59,7 +57,6 @@ export default async function WatchPage({ params }: WatchPageProps) {
       <VideoPlayer
         videoId={id}
         video={video}
-        initialWatched={watched}
         initialInWatchLater={inWatchLater}
         initialReaction={reaction}
       />
