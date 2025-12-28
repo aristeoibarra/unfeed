@@ -3,6 +3,14 @@
 import { exec } from "child_process"
 import { promisify } from "util"
 import { prisma } from "@/lib/db"
+import {
+  getLocalAudioFile,
+  downloadAudioFile,
+  getDownloadStatus,
+  getDiskUsage,
+  canDownload,
+  type DownloadStatus,
+} from "@/lib/audio-cache"
 
 const execAsync = promisify(exec)
 
@@ -137,5 +145,119 @@ export async function checkYtDlpStatus(): Promise<{
       available: false,
       error: message,
     }
+  }
+}
+
+/**
+ * Get audio URL - prefers local file, falls back to stream
+ * Starts background download if file not cached locally
+ */
+export async function getAudioWithLocalPreference(videoId: string): Promise<{
+  url: string
+  type: "local" | "stream"
+  downloading: boolean
+} | null> {
+  if (!VIDEO_ID_REGEX.test(videoId)) {
+    return null
+  }
+
+  try {
+    // Check local file first
+    const localFile = await getLocalAudioFile(videoId)
+
+    if (localFile) {
+      return {
+        url: `/api/audio/${videoId}/file`,
+        type: "local",
+        downloading: false,
+      }
+    }
+
+    // Start background download if disk space available
+    let downloading = false
+    if (await canDownload()) {
+      downloadAudioFile(videoId).catch(() => {})
+      downloading = true
+    }
+
+    // Return stream URL for immediate playback
+    const streamUrl = await getAudioUrl(videoId)
+
+    if (!streamUrl) return null
+
+    return {
+      url: streamUrl,
+      type: "stream",
+      downloading,
+    }
+  } catch (error) {
+    console.error("Error getting audio:", error)
+    return null
+  }
+}
+
+/**
+ * Trigger audio download without waiting for completion
+ */
+export async function triggerAudioDownload(videoId: string): Promise<{
+  success: boolean
+  status: DownloadStatus
+  error?: string
+}> {
+  if (!VIDEO_ID_REGEX.test(videoId)) {
+    return { success: false, status: "error", error: "Invalid video ID" }
+  }
+
+  try {
+    const current = await getDownloadStatus(videoId)
+
+    if (current.status === "ready") {
+      return { success: true, status: "ready" }
+    }
+
+    if (current.status === "downloading") {
+      return { success: true, status: "downloading" }
+    }
+
+    // Check disk space
+    if (!(await canDownload())) {
+      return { success: false, status: "error", error: "Disk space limit reached" }
+    }
+
+    // Start download in background
+    downloadAudioFile(videoId).catch(() => {})
+
+    return { success: true, status: "downloading" }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error"
+    return { success: false, status: "error", error: message }
+  }
+}
+
+/**
+ * Get download status for UI polling
+ */
+export async function getAudioDownloadStatus(videoId: string): Promise<{
+  status: DownloadStatus
+  error?: string
+}> {
+  return getDownloadStatus(videoId)
+}
+
+/**
+ * Get cache statistics for monitoring
+ */
+export async function getAudioCacheStats(): Promise<{
+  totalFiles: number
+  totalSizeGB: number
+  maxSizeGB: number
+  usagePercent: number
+}> {
+  const stats = await getDiskUsage()
+  return {
+    totalFiles: stats.totalFiles,
+    totalSizeGB: stats.totalSizeGB,
+    maxSizeGB: stats.maxSizeGB,
+    usagePercent: stats.usagePercent,
   }
 }

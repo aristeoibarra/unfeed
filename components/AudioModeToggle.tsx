@@ -6,6 +6,7 @@ import { usePlayer } from "@/contexts/PlayerContext"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Volume2, Loader2, Video } from "lucide-react"
+import { AudioDownloadStatus } from "./AudioDownloadStatus"
 
 interface AudioModeToggleProps {
   videoId: string
@@ -178,15 +179,20 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
         </div>
       )}
 
-      {/* Sync info when in audio mode - Positive feedback */}
-      {isAudioMode && currentTime > 0 && (
+      {/* Status info when in audio mode */}
+      {isAudioMode && (
         <div
-          className="mt-3 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5"
+          className="mt-3 flex items-center gap-3"
           role="status"
           aria-live="polite"
         >
-          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" aria-hidden="true" />
-          Playing from {formatTime(currentTime)}
+          <AudioDownloadStatus videoId={videoId} />
+          {currentTime > 0 && (
+            <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" aria-hidden="true" />
+              Playing from {formatTime(currentTime)}
+            </div>
+          )}
         </div>
       )}
     </div>

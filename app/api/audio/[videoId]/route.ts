@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { exec } from "child_process"
 import { promisify } from "util"
 import { prisma } from "@/lib/db"
+import {
+  getLocalAudioFile,
+  downloadAudioFile,
+  touchAudioFile,
+  canDownload,
+} from "@/lib/audio-cache"
 
 const execAsync = promisify(exec)
 
@@ -12,8 +18,10 @@ const VIDEO_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/
 const CACHE_TTL_MS = 5 * 60 * 60 * 1000
 
 interface AudioResponse {
+  type: "local" | "stream"
   url: string
   cached?: boolean
+  downloading?: boolean
 }
 
 interface ErrorResponse {
@@ -35,19 +43,49 @@ export async function GET(
   }
 
   try {
-    // Check cache first
+    // 1. Check for local file first (instant playback)
+    const localFile = await getLocalAudioFile(videoId)
+
+    if (localFile) {
+      // Update last played timestamp
+      touchAudioFile(videoId).catch(() => {})
+
+      return NextResponse.json({
+        type: "local",
+        url: `/api/audio/${videoId}/file`,
+        cached: true,
+      })
+    }
+
+    // 2. Start background download if disk space available
+    let downloading = false
+    if (await canDownload()) {
+      downloadAudioFile(videoId).catch((err) => {
+        console.log(`Background download for ${videoId}:`, err.message)
+      })
+      downloading = true
+    }
+
+    // 3. Check URL cache for stream URL
     const cached = await prisma.audioCache.findUnique({
       where: { videoId },
     })
 
     if (cached && cached.expiresAt > new Date()) {
-      return NextResponse.json({ url: cached.audioUrl, cached: true })
+      return NextResponse.json({
+        type: "stream",
+        url: cached.audioUrl,
+        cached: true,
+        downloading,
+      })
     }
 
-    // Execute yt-dlp to get the audio stream URL
-    // Using bestaudio format with m4a preference for better compatibility
+    // 4. Execute yt-dlp to get the audio stream URL
+    const cookiesPath = process.env.YT_DLP_COOKIES_PATH || "/home/ec2-user/cookies_youtube.txt"
+    const ytdlpPath = process.env.YT_DLP_PATH || "/home/ec2-user/.local/bin/yt-dlp"
+
     const { stdout, stderr } = await execAsync(
-      `yt-dlp -f 'bestaudio[ext=m4a]/bestaudio' --get-url "https://youtube.com/watch?v=${videoId}"`,
+      `${ytdlpPath} --cookies "${cookiesPath}" -f 'bestaudio[ext=m4a]/bestaudio/93/best' --get-url "https://youtube.com/watch?v=${videoId}"`,
       {
         timeout: 30000, // 30 second timeout
         maxBuffer: 1024 * 1024, // 1MB buffer
@@ -73,7 +111,12 @@ export async function GET(
     })
 
     // Return the audio stream URL
-    return NextResponse.json({ url: audioUrl, cached: false })
+    return NextResponse.json({
+      type: "stream",
+      url: audioUrl,
+      cached: false,
+      downloading,
+    })
   } catch (error) {
     console.error("Error executing yt-dlp:", error)
 

@@ -190,3 +190,17 @@ model AudioCache {
 
   @@index([expiresAt])
 }
+
+model AudioFile {
+  id           Int      @id @default(autoincrement())
+  videoId      String   @unique
+  filePath     String   // Relative path: "{videoId}.mp3"
+  fileSize     Int      // File size in bytes
+  downloadedAt DateTime @default(now())
+  lastPlayedAt DateTime @default(now()) // For 30-day cleanup
+  status       String   @default("pending") // pending|downloading|ready|error
+  errorMessage String?
+
+  @@index([lastPlayedAt])
+  @@index([status])
+}

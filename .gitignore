@@ -53,6 +53,9 @@ next-env.d.ts
 *.db
 *.db-journal
 
+# audio cache (offline mode)
+/audio-cache/
+
 # yt-dlp cookies (sensitive)
 cookies.txt
 

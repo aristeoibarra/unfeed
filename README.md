@@ -27,6 +27,7 @@ A web application that:
 - **Playlists** - Organize your videos
 - **Liked** - Videos you liked
 - **Audio Mode** - Listen to videos as podcasts
+- **Offline Audio Cache** - Downloaded audio files for instant playback
 - **Notifications** - Alerts for new videos
 - **PWA** - Install as native app
 - **Authentication** - Private access
@@ -76,6 +77,40 @@ For Audio Mode to work reliably in production, yt-dlp may need YouTube cookies t
 - Cookies expire periodically, you may need to re-export them
 - Use a dedicated YouTube account for this purpose
 
+### Offline Audio Cache
+
+Audio files are automatically downloaded to disk when you use Audio Mode. This provides:
+- **Instant playback** - No waiting for yt-dlp to extract URLs
+- **Reliability** - Works even if yt-dlp temporarily fails
+- **Reduced API calls** - Less load on YouTube
+
+**Configuration:**
+```env
+# Directory for cached audio files
+AUDIO_CACHE_DIR=./audio-cache          # Development
+AUDIO_CACHE_DIR=/home/ec2-user/audio-cache  # Production (EC2)
+
+# Maximum disk usage for audio cache (in GB)
+MAX_AUDIO_CACHE_GB=5   # Development
+MAX_AUDIO_CACHE_GB=50  # Production
+```
+
+**How it works:**
+1. User activates Audio Mode
+2. If audio file exists locally → serve instantly
+3. If not → stream from YouTube while downloading in background
+4. Files not played in 30+ days are automatically cleaned up
+
+**Setup for production (EC2):**
+```bash
+# Create cache directory
+mkdir -p /home/ec2-user/audio-cache
+
+# Add daily cleanup cron (3 AM)
+crontab -e
+0 3 * * * curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain.com/api/cron/audio-cleanup
+```
+
 ## Installation
 
 ```bash
@@ -101,11 +136,24 @@ bun run dev
 ## Environment Variables
 
 ```env
+# YouTube API
 YOUTUBE_API_KEY=your_youtube_api_key
+
+# Authentication
 AUTH_SECRET=your_session_secret
 AUTH_EMAIL=your@email.com
 AUTH_PASSWORD_HASH=your_password_hash
+
+# Cron jobs
 CRON_SECRET=your_cron_secret_for_sync
+
+# Audio Cache (Offline Mode)
+AUDIO_CACHE_DIR=./audio-cache
+MAX_AUDIO_CACHE_GB=5
+
+# yt-dlp (optional, for production)
+YT_DLP_PATH=/home/ec2-user/.local/bin/yt-dlp
+YT_DLP_COOKIES_PATH=/home/ec2-user/cookies_youtube.txt
 ```
 
 ## Configure YouTube API Key
@@ -139,11 +187,15 @@ bun run lint     # Run linter
 app/
   (routes)/       # Application pages
   api/            # API routes
+    audio/        # Audio streaming and file serving
+    cron/         # Scheduled tasks (sync, audio-cleanup)
 actions/          # Server actions
 components/       # React components
 lib/              # Utilities and configuration
+  audio-cache.ts  # Offline audio download logic
 prisma/           # Database schema
 public/           # Static assets
+audio-cache/      # Downloaded audio files (gitignored)
 ```
 
 ## License
