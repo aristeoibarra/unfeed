@@ -6,8 +6,8 @@ import { LikeDislikeButton } from "./LikeDislikeButton"
 import { AddToPlaylistButton } from "./AddToPlaylistButton"
 import { AudioModePlayer } from "./AudioModePlayer"
 import { AudioModeToggle } from "./AudioModeToggle"
-import { ResumeDialogFull } from "./ResumeDialog"
-import { useState, useEffect, useRef } from "react"
+import { RestartButton } from "./RestartButton"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import type { ReactionType } from "@/actions/reactions"
@@ -37,7 +37,6 @@ export function VideoPlayer({
   initialInWatchLater,
   initialReaction,
 }: VideoPlayerProps) {
-  const [showResumeDialog, setShowResumeDialog] = useState(false)
   const [savedProgress, setSavedProgress] = useState<number | null>(null)
   const [resumeTime, setResumeTime] = useState(0)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -49,6 +48,7 @@ export function VideoPlayer({
     setHistoryId,
     currentTime,
     playVideo,
+    youtubePlayerControls,
   } = usePlayer()
 
   // Check for saved progress and add to history
@@ -62,11 +62,10 @@ export function VideoPlayer({
         const existingProgress = await getVideoProgress(videoId)
 
         if (existingProgress && !existingProgress.completed && existingProgress.progress > 30) {
-          // Only show resume dialog if progress is more than 30 seconds
-          // and video is not completed
+          // Auto-resume from saved progress (TDA-friendly: no modal, just play)
           setSavedProgress(existingProgress.progress)
+          setResumeTime(existingProgress.progress)
           setHistoryId(existingProgress.historyId)
-          setShowResumeDialog(true)
         } else {
           // No significant progress, start fresh and create new history entry
           const historyId = await addToHistory(videoId, {
@@ -77,8 +76,10 @@ export function VideoPlayer({
             duration: video.duration,
           })
           setHistoryId(historyId)
-          setIsInitialized(true)
         }
+
+        // Initialize player immediately (no dialog wait)
+        setIsInitialized(true)
 
         // Set up player context with video info
         playVideo({
@@ -105,14 +106,8 @@ export function VideoPlayer({
     initializePlayer()
   }, [videoId, video, setHistoryId, playVideo])
 
-  const handleResume = () => {
-    if (savedProgress) {
-      setResumeTime(savedProgress)
-    }
-    setIsInitialized(true)
-  }
-
-  const handleStartOver = async () => {
+  // Handle restart from beginning
+  const handleRestart = useCallback(async () => {
     try {
       // Create new history entry for fresh start
       const historyId = await addToHistory(videoId, {
@@ -126,9 +121,13 @@ export function VideoPlayer({
     } catch (error) {
       console.error("Error creating history entry:", error)
     }
-    setResumeTime(0)
-    setIsInitialized(true)
-  }
+
+    // Seek to beginning
+    if (youtubePlayerControls) {
+      youtubePlayerControls.seekTo(0, true)
+    }
+    setSavedProgress(null)
+  }, [videoId, video, setHistoryId, youtubePlayerControls])
 
   const handleSwitchToVideo = () => {
     // When switching from audio to video, maintain the current time
@@ -138,17 +137,6 @@ export function VideoPlayer({
 
   return (
     <article className="space-y-6" aria-label={`Video: ${video.title}`}>
-      {/* Resume Dialog */}
-      <ResumeDialogFull
-        isOpen={showResumeDialog}
-        onClose={() => setShowResumeDialog(false)}
-        onResume={handleResume}
-        onStartOver={handleStartOver}
-        progress={savedProgress || 0}
-        duration={video.duration}
-        videoTitle={video.title}
-      />
-
       {/* Video player container */}
       <div className="rounded-xl overflow-hidden bg-[var(--card)] ring-1 ring-[var(--border)]">
         {isAudioMode ? (
@@ -162,7 +150,7 @@ export function VideoPlayer({
           )
         )}
         {/* Loading state - Clear feedback for TDA users */}
-        {!isInitialized && !showResumeDialog && (
+        {!isInitialized && (
           <div
             className="aspect-video flex flex-col items-center justify-center bg-[var(--muted)]"
             role="status"
@@ -213,6 +201,9 @@ export function VideoPlayer({
             <LikeDislikeButton videoId={videoId} initialReaction={initialReaction} />
             <AddToPlaylistButton video={video} />
             <WatchLaterButton video={video} isInWatchLater={initialInWatchLater} />
+            {savedProgress !== null && savedProgress > 30 && (
+              <RestartButton onRestart={handleRestart} />
+            )}
           </nav>
         </div>
 
