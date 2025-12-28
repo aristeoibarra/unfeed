@@ -1,10 +1,21 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { Bell } from "lucide-react"
 import { getUnreadCount, getRecentNotifications, markAsRead, markAllAsRead, type NotificationData } from "@/actions/notifications"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useMediaQuery } from "@/hooks/useMediaQuery"
 
-// Formatea duración de segundos a MM:SS o H:MM:SS
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
@@ -16,7 +27,6 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, "0")}`
 }
 
-// Tiempo relativo
 function getTimeAgo(date: Date): string {
   const now = new Date()
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
@@ -42,13 +52,107 @@ interface NotificationBellProps {
   initialNotifications: NotificationData[]
 }
 
+function NotificationItem({
+  notification,
+  onClick,
+}: {
+  notification: NotificationData
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={`/watch/${notification.videoId}`}
+      onClick={onClick}
+      className={`flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+        !notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
+      }`}
+    >
+      <div className="relative flex-shrink-0 w-24 h-14 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+        <img
+          src={notification.thumbnail}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        {notification.duration && (
+          <span className="absolute bottom-0.5 right-0.5 px-1 text-[10px] bg-black/80 text-white rounded">
+            {formatDuration(notification.duration)}
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium line-clamp-2">{notification.title}</p>
+        <p className="text-xs text-gray-500 mt-0.5">
+          {notification.channelName} &middot; {getTimeAgo(new Date(notification.createdAt))}
+        </p>
+      </div>
+      {!notification.isRead && (
+        <div className="flex-shrink-0 w-2 h-2 mt-2 bg-blue-500 rounded-full" />
+      )}
+    </Link>
+  )
+}
+
+function NotificationList({
+  notifications,
+  count,
+  onMarkAllRead,
+  onNotificationClick,
+  onClose,
+}: {
+  notifications: NotificationData[]
+  count: number
+  onMarkAllRead: () => void
+  onNotificationClick: (notification: NotificationData) => void
+  onClose: () => void
+}) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <span className="font-semibold">Notifications</span>
+        {count > 0 && (
+          <button
+            onClick={onMarkAllRead}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Mark all read
+          </button>
+        )}
+      </div>
+      <ScrollArea className="max-h-80">
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-gray-500">
+            No notifications yet
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onClick={() => {
+                onNotificationClick(notification)
+                onClose()
+              }}
+            />
+          ))
+        )}
+      </ScrollArea>
+      <Link
+        href="/notifications"
+        onClick={onClose}
+        className="block px-4 py-3 text-center text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+      >
+        View all notifications
+      </Link>
+    </>
+  )
+}
+
 export function NotificationBell({ initialCount, initialNotifications }: NotificationBellProps) {
   const [count, setCount] = useState(initialCount)
   const [notifications, setNotifications] = useState(initialNotifications)
   const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
-  // Actualizar contador al hacer focus en la pestaña
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
@@ -61,18 +165,6 @@ export function NotificationBell({ initialCount, initialNotifications }: Notific
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [])
-
-  // Cerrar dropdown al hacer clic fuera
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   async function handleMarkAllAsRead() {
@@ -89,113 +181,60 @@ export function NotificationBell({ initialCount, initialNotifications }: Notific
         prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
       )
     }
-    setIsOpen(false)
+  }
+
+  const bellButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative h-11 w-11 rounded-full"
+      aria-label="Notifications"
+    >
+      <Bell className="h-5 w-5" />
+      {count > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Button>
+  )
+
+  if (isDesktop) {
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          {bellButton}
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-80 p-0">
+          <NotificationList
+            notifications={notifications}
+            count={count}
+            onMarkAllRead={handleMarkAllAsRead}
+            onNotificationClick={handleNotificationClick}
+            onClose={() => setIsOpen(false)}
+          />
+        </PopoverContent>
+      </Popover>
+    )
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        aria-label="Notifications"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
-          />
-        </svg>
-
-        {/* Badge */}
-        {count > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
-            {count > 99 ? "99+" : count}
-          </span>
-        )}
-      </button>
-
-      {/* Dropdown */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="font-semibold">Notifications</span>
-            {count > 0 && (
-              <button
-                onClick={handleMarkAllAsRead}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Mark all read
-              </button>
-            )}
-          </div>
-
-          {/* Notifications List */}
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500">
-                No notifications yet
-              </div>
-            ) : (
-              notifications.map((notification) => (
-                <Link
-                  key={notification.id}
-                  href={`/watch/${notification.videoId}`}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    !notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                  }`}
-                >
-                  {/* Thumbnail */}
-                  <div className="relative flex-shrink-0 w-24 h-14 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    <img
-                      src={notification.thumbnail}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                    {notification.duration && (
-                      <span className="absolute bottom-0.5 right-0.5 px-1 text-[10px] bg-black/80 text-white rounded">
-                        {formatDuration(notification.duration)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium line-clamp-2">{notification.title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {notification.channelName} &middot; {getTimeAgo(new Date(notification.createdAt))}
-                    </p>
-                  </div>
-
-                  {/* Unread indicator */}
-                  {!notification.isRead && (
-                    <div className="flex-shrink-0 w-2 h-2 mt-2 bg-blue-500 rounded-full" />
-                  )}
-                </Link>
-              ))
-            )}
-          </div>
-
-          {/* Footer */}
-          <Link
-            href="/notifications"
-            onClick={() => setIsOpen(false)}
-            className="block px-4 py-3 text-center text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-          >
-            View all notifications
-          </Link>
-        </div>
-      )}
-    </div>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+      <DrawerTrigger asChild>
+        {bellButton}
+      </DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Notifications</DrawerTitle>
+        </DrawerHeader>
+        <NotificationList
+          notifications={notifications}
+          count={count}
+          onMarkAllRead={handleMarkAllAsRead}
+          onNotificationClick={handleNotificationClick}
+          onClose={() => setIsOpen(false)}
+        />
+      </DrawerContent>
+    </Drawer>
   )
 }

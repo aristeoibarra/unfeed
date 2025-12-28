@@ -4,8 +4,8 @@ import Link from "next/link";
 import { getUnreadCount, getRecentNotifications } from "@/actions/notifications";
 import { getSession } from "@/lib/auth";
 import { NotificationBell } from "@/components/NotificationBell";
-import { MobileNav } from "@/components/MobileNav";
 import { DesktopNav } from "@/components/DesktopNav";
+import { ConditionalBottomNav } from "@/components/ConditionalBottomNav";
 import { UserMenu } from "@/components/UserMenu";
 import { Providers } from "@/components/Providers";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 const APP_NAME = "Unfeed";
-const APP_DESCRIPTION = "YouTube sin distracciones";
+const APP_DESCRIPTION = "YouTube without distractions";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -65,7 +65,7 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >
@@ -83,17 +83,14 @@ export default async function RootLayout({
             <ConditionalHeader>
               <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/60 safe-top">
                 <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                  {/* Left: Mobile menu + Logo */}
-                  <div className="flex items-center gap-3">
-                    <MobileNav />
-                    <Link
-                      href="/"
-                      className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
-                      aria-label="Unfeed - Go to home"
-                    >
-                      Unfeed
-                    </Link>
-                  </div>
+                  {/* Left: Logo */}
+                  <Link
+                    href="/"
+                    className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+                    aria-label="Unfeed - Go to home"
+                  >
+                    Unfeed
+                  </Link>
 
                   {/* Center: Desktop navigation */}
                   <DesktopNav />
@@ -116,6 +113,9 @@ export default async function RootLayout({
             <ConditionalMain>
               {children}
             </ConditionalMain>
+
+            {/* Bottom navigation for mobile PWA */}
+            <ConditionalBottomNav />
 
             {/* Toast notifications */}
             <Toaster />

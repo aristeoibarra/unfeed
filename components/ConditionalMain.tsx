@@ -31,10 +31,15 @@ export function ConditionalMain({ children }: ConditionalMainProps) {
     return <>{children}</>;
   }
 
+  // On watch pages, don't add bottom padding (full screen video)
+  const isWatchPage = pathname.startsWith("/watch");
+
   return (
     <main
       id="main-content"
-      className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] safe-bottom"
+      className={`max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] safe-bottom ${
+        isWatchPage ? "" : "pb-24 md:pb-8"
+      }`}
       tabIndex={-1}
     >
       {children}
