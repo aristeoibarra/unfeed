@@ -32,7 +32,14 @@ describe("SyncStatus", () => {
     },
     nextAutoSync: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4 hours from now
     channelCount: 10,
+    enabledChannelCount: 8,
     totalVideos: 500,
+    quota: {
+      dailyUnitsEstimate: 3232,
+      dailyQuota: 10000,
+      percentage: 32,
+      syncsPerDay: 4,
+    },
   };
 
   const mockLogs = [
@@ -73,8 +80,17 @@ describe("SyncStatus", () => {
     expect(screen.getByText("Next auto sync")).toBeInTheDocument();
     expect(screen.getByText("Channels")).toBeInTheDocument();
     expect(screen.getByText("Videos cached")).toBeInTheDocument();
-    expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText("500")).toBeInTheDocument();
+    // Check channel count format: enabled/total syncing
+    expect(screen.getByText(/8\/10/)).toBeInTheDocument();
+  });
+
+  it("renders quota indicator", () => {
+    render(<SyncStatus summary={mockSummary} recentLogs={mockLogs} />);
+
+    expect(screen.getByText("Estimated Daily API Usage")).toBeInTheDocument();
+    expect(screen.getByText("32%")).toBeInTheDocument();
+    expect(screen.getByText(/3,232.*10,000.*units/)).toBeInTheDocument();
   });
 
   it("renders Sync Now button", () => {
@@ -127,7 +143,8 @@ describe("SyncStatus", () => {
     const button = screen.getByRole("button", { name: /sync now/i });
     fireEvent.click(button);
 
-    expect(screen.getByText(/syncing/i)).toBeInTheDocument();
+    // Check for button with Syncing... text (exact match for button content)
+    expect(screen.getByRole("button", { name: /syncing/i })).toBeInTheDocument();
   });
 
   it("displays error logs with error indicator", () => {
@@ -183,7 +200,14 @@ describe("SyncStatus", () => {
       lastSync: null,
       nextAutoSync: null,
       channelCount: 5,
+      enabledChannelCount: 5,
       totalVideos: 0,
+      quota: {
+        dailyUnitsEstimate: 2020,
+        dailyQuota: 10000,
+        percentage: 20,
+        syncsPerDay: 4,
+      },
     };
 
     render(<SyncStatus summary={summaryNoSync} recentLogs={[]} />);

@@ -9,6 +9,7 @@ export interface AppSettings {
   weeklyLimitMinutes: number | null
   preferredLanguage: "es" | "en"
   autoShowSubtitles: boolean
+  syncIntervalHours: 3 | 6 | 12 | 24
 }
 
 export interface WatchTimeStatus {
@@ -29,7 +30,8 @@ const DEFAULT_SETTINGS = {
   dailyLimitMinutes: null,
   weeklyLimitMinutes: null,
   preferredLanguage: "es" as const,
-  autoShowSubtitles: false
+  autoShowSubtitles: false,
+  syncIntervalHours: 6 as const
 }
 
 async function getOrCreateSettings() {
@@ -51,7 +53,8 @@ export async function getSettings(): Promise<AppSettings> {
     dailyLimitMinutes: settings.dailyLimitMinutes,
     weeklyLimitMinutes: settings.weeklyLimitMinutes,
     preferredLanguage: settings.preferredLanguage as "es" | "en",
-    autoShowSubtitles: settings.autoShowSubtitles
+    autoShowSubtitles: settings.autoShowSubtitles,
+    syncIntervalHours: settings.syncIntervalHours as 3 | 6 | 12 | 24
   }
 }
 
@@ -72,8 +75,18 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
     dailyLimitMinutes: updated.dailyLimitMinutes,
     weeklyLimitMinutes: updated.weeklyLimitMinutes,
     preferredLanguage: updated.preferredLanguage as "es" | "en",
-    autoShowSubtitles: updated.autoShowSubtitles
+    autoShowSubtitles: updated.autoShowSubtitles,
+    syncIntervalHours: updated.syncIntervalHours as 3 | 6 | 12 | 24
   }
+}
+
+export async function updateSyncInterval(hours: 3 | 6 | 12 | 24): Promise<AppSettings> {
+  return updateSettings({ syncIntervalHours: hours })
+}
+
+export async function getSyncIntervalHours(): Promise<number> {
+  const settings = await getOrCreateSettings()
+  return settings.syncIntervalHours
 }
 
 export async function toggleHideDislikedFromFeed(): Promise<boolean> {

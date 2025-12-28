@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import Link from "next/link"
-import { deleteSubscription } from "@/actions/subscriptions"
+import { deleteSubscription, toggleSyncEnabled } from "@/actions/subscriptions"
 import { assignCategory, type CategoryData } from "@/actions/categories"
+import { syncSingleChannel } from "@/actions/sync"
 
 interface Subscription {
   id: number
@@ -11,6 +12,7 @@ interface Subscription {
   name: string
   thumbnail: string | null
   categoryId: number | null
+  syncEnabled: boolean
   category: { id: number; name: string; color: string | null } | null
 }
 
@@ -25,6 +27,8 @@ export function SubscriptionListWithCategories({
 }: SubscriptionListWithCategoriesProps) {
   const [subscriptions, setSubscriptions] = useState(initialSubscriptions)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [syncingChannelId, setSyncingChannelId] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   // Sync state when props change (after router.refresh)
   useEffect(() => {
@@ -73,6 +77,23 @@ export function SubscriptionListWithCategories({
       }
       return s
     }))
+  }
+
+  function handleSync(channelId: string) {
+    setSyncingChannelId(channelId)
+    startTransition(async () => {
+      await syncSingleChannel(channelId)
+      setSyncingChannelId(null)
+    })
+  }
+
+  async function handleToggleSyncEnabled(id: number) {
+    const result = await toggleSyncEnabled(id)
+    if (result.success) {
+      setSubscriptions(subscriptions.map(s =>
+        s.id === id ? { ...s, syncEnabled: result.data } : s
+      ))
+    }
   }
 
   if (subscriptions.length === 0) {
@@ -151,6 +172,50 @@ export function SubscriptionListWithCategories({
                       </option>
                     ))}
                   </select>
+
+                  {/* Auto-sync toggle */}
+                  <button
+                    onClick={() => handleToggleSyncEnabled(subscription.id)}
+                    className={`p-2 rounded transition-colors ${
+                      subscription.syncEnabled
+                        ? "text-green-600 hover:text-green-700 dark:text-green-500"
+                        : "text-gray-400 hover:text-gray-500"
+                    }`}
+                    title={subscription.syncEnabled ? "Auto-sync enabled (click to pause)" : "Auto-sync paused (click to enable)"}
+                  >
+                    {subscription.syncEnabled ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Sync button */}
+                  <button
+                    onClick={() => handleSync(subscription.channelId)}
+                    disabled={syncingChannelId === subscription.channelId || isPending}
+                    className="p-2 text-gray-500 hover:text-blue-600 disabled:opacity-50"
+                    title="Sync this channel now"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className={`w-5 h-5 ${syncingChannelId === subscription.channelId ? "animate-spin" : ""}`}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                      />
+                    </svg>
+                  </button>
 
                   {/* Delete button */}
                   <button

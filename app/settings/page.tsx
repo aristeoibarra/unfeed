@@ -6,6 +6,7 @@ import { TimeLimitSettings } from "@/components/TimeLimitSettings"
 import { ClearHistoryButton } from "@/components/ClearHistoryButton"
 import { CategoryManager } from "@/components/CategoryManager"
 import { SyncStatus } from "@/components/SyncStatus"
+import { SyncIntervalSettings } from "@/components/SyncIntervalSettings"
 import { LanguageSettings } from "@/components/LanguageSettings"
 import { Settings, FolderOpen, RefreshCw, Languages } from "lucide-react"
 
@@ -51,7 +52,12 @@ export default async function SettingsPage() {
               </p>
             </div>
           </div>
-          <SyncStatus summary={syncSummary} recentLogs={syncLogs} />
+          <div className="space-y-4">
+            <SyncIntervalSettings initialInterval={settings.syncIntervalHours} />
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <SyncStatus summary={syncSummary} recentLogs={syncLogs} />
+            </div>
+          </div>
         </section>
 
         {/* Categories */}

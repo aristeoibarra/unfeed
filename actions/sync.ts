@@ -3,15 +3,15 @@
 import { prisma } from "@/lib/db"
 import { getChannelVideos } from "@/lib/youtube"
 import { revalidatePath } from "next/cache"
-
-const SYNC_COOLDOWN_HOURS = 6
+import { getSyncIntervalHours } from "@/actions/settings"
 
 export async function getSyncStatus() {
   // Solo canales activos (no eliminados)
-  const subscriptions = await prisma.subscription.findMany({
-    where: { deletedAt: null }
-  })
-  const syncStatuses = await prisma.syncStatus.findMany()
+  const [subscriptions, syncStatuses, syncIntervalHours] = await Promise.all([
+    prisma.subscription.findMany({ where: { deletedAt: null } }),
+    prisma.syncStatus.findMany(),
+    getSyncIntervalHours()
+  ])
 
   const statusMap = new Map(syncStatuses.map(s => [s.channelId, s]))
 
@@ -32,7 +32,7 @@ export async function getSyncStatus() {
       }
 
       const hoursSinceSync = (now.getTime() - syncStatus.lastSyncedAt.getTime()) / (1000 * 60 * 60)
-      if (hoursSinceSync >= SYNC_COOLDOWN_HOURS) {
+      if (hoursSinceSync >= syncIntervalHours) {
         needsSync = true
       }
       if (!lastSyncedAt || syncStatus.lastSyncedAt < lastSyncedAt) {
@@ -386,28 +386,46 @@ export async function getSyncLogs(limit = 10) {
 
 // Get sync status summary for Settings page
 export async function getSyncSummary() {
-  const [lastSync, subscriptions, totalVideos] = await Promise.all([
+  const [lastSync, totalChannels, enabledChannels, totalVideos, syncIntervalHours] = await Promise.all([
     prisma.syncLog.findFirst({
       where: { status: { not: "skipped" } },
       orderBy: { createdAt: "desc" }
     }),
     prisma.subscription.count({ where: { deletedAt: null } }),
-    prisma.video.count()
+    prisma.subscription.count({ where: { deletedAt: null, syncEnabled: true } }),
+    prisma.video.count(),
+    getSyncIntervalHours()
   ])
 
-  // Calculate next auto sync time (6 hours from last successful/partial sync)
+  // Calculate next auto sync time based on configured interval
   let nextAutoSync: Date | null = null
   if (lastSync) {
-    nextAutoSync = new Date(lastSync.createdAt.getTime() + SYNC_COOLDOWN_HOURS * 60 * 60 * 1000)
+    nextAutoSync = new Date(lastSync.createdAt.getTime() + syncIntervalHours * 60 * 60 * 1000)
     if (nextAutoSync < new Date()) {
       nextAutoSync = null // Already due
     }
   }
 
+  // Calculate estimated daily quota usage
+  // YouTube API: ~101 units per channel (100 search + 1 videos.list)
+  // Default daily quota: 10,000 units
+  const UNITS_PER_CHANNEL = 101
+  const DAILY_QUOTA = 10000
+  const syncsPerDay = Math.floor(24 / syncIntervalHours)
+  const dailyUnitsEstimate = enabledChannels * UNITS_PER_CHANNEL * syncsPerDay
+  const quotaPercentage = Math.round((dailyUnitsEstimate / DAILY_QUOTA) * 100)
+
   return {
     lastSync,
     nextAutoSync,
-    channelCount: subscriptions,
-    totalVideos
+    channelCount: totalChannels,
+    enabledChannelCount: enabledChannels,
+    totalVideos,
+    quota: {
+      dailyUnitsEstimate,
+      dailyQuota: DAILY_QUOTA,
+      percentage: quotaPercentage,
+      syncsPerDay
+    }
   }
 }

@@ -5,7 +5,12 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-import { getSettings, updateSettings } from "@/actions/settings";
+import {
+  getSettings,
+  updateSettings,
+  updateSyncInterval,
+  getSyncIntervalHours,
+} from "@/actions/settings";
 
 describe("actions/settings", () => {
   beforeEach(() => {
@@ -24,6 +29,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: 300,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       const result = await getSettings();
@@ -34,6 +40,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: 300,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
     });
 
@@ -46,6 +53,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       const result = await getSettings();
@@ -57,6 +65,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
     });
 
@@ -68,12 +77,29 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "en",
         autoShowSubtitles: true,
+        syncIntervalHours: 6,
       });
 
       const result = await getSettings();
 
       expect(result.preferredLanguage).toBe("en");
       expect(result.autoShowSubtitles).toBe(true);
+    });
+
+    it("returns custom sync interval", async () => {
+      prismaMock.settings.findFirst.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 12,
+      });
+
+      const result = await getSettings();
+
+      expect(result.syncIntervalHours).toBe(12);
     });
   });
 
@@ -86,6 +112,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       prismaMock.settings.update.mockResolvedValue({
@@ -95,6 +122,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "en",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       const result = await updateSettings({ preferredLanguage: "en" });
@@ -114,6 +142,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       prismaMock.settings.update.mockResolvedValue({
@@ -123,6 +152,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: true,
+        syncIntervalHours: 6,
       });
 
       const result = await updateSettings({ autoShowSubtitles: true });
@@ -142,6 +172,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "es",
         autoShowSubtitles: false,
+        syncIntervalHours: 6,
       });
 
       prismaMock.settings.update.mockResolvedValue({
@@ -151,6 +182,7 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "en",
         autoShowSubtitles: true,
+        syncIntervalHours: 6,
       });
 
       const result = await updateSettings({
@@ -166,7 +198,101 @@ describe("actions/settings", () => {
         weeklyLimitMinutes: null,
         preferredLanguage: "en",
         autoShowSubtitles: true,
+        syncIntervalHours: 6,
       });
+    });
+  });
+
+  describe("updateSyncInterval", () => {
+    it("updates sync interval to 3 hours", async () => {
+      prismaMock.settings.findFirst.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 6,
+      });
+
+      prismaMock.settings.update.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 3,
+      });
+
+      const result = await updateSyncInterval(3);
+
+      expect(prismaMock.settings.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { syncIntervalHours: 3 },
+      });
+      expect(result.syncIntervalHours).toBe(3);
+    });
+
+    it("updates sync interval to 24 hours", async () => {
+      prismaMock.settings.findFirst.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 6,
+      });
+
+      prismaMock.settings.update.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 24,
+      });
+
+      const result = await updateSyncInterval(24);
+
+      expect(result.syncIntervalHours).toBe(24);
+    });
+  });
+
+  describe("getSyncIntervalHours", () => {
+    it("returns sync interval from settings", async () => {
+      prismaMock.settings.findFirst.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 12,
+      });
+
+      const result = await getSyncIntervalHours();
+
+      expect(result).toBe(12);
+    });
+
+    it("returns default 6 when creating new settings", async () => {
+      prismaMock.settings.findFirst.mockResolvedValue(null);
+      prismaMock.settings.create.mockResolvedValue({
+        id: 1,
+        hideDislikedFromFeed: true,
+        dailyLimitMinutes: null,
+        weeklyLimitMinutes: null,
+        preferredLanguage: "es",
+        autoShowSubtitles: false,
+        syncIntervalHours: 6,
+      });
+
+      const result = await getSyncIntervalHours();
+
+      expect(result).toBe(6);
     });
   });
 });

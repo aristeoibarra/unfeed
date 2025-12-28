@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { getChannelVideos } from "@/lib/youtube"
 import { revalidatePath } from "next/cache"
+import { getSyncIntervalHours } from "@/actions/settings"
 
 const CRON_SECRET = process.env.CRON_SECRET
-const SYNC_COOLDOWN_HOURS = 6
 
 interface SyncError {
   channelId: string
@@ -48,14 +48,17 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
 
   try {
-    // Check for recent sync (< 6h) - skip if manual sync was done recently
+    // Get sync interval from settings
+    const syncIntervalHours = await getSyncIntervalHours()
+
+    // Check for recent sync - skip if manual sync was done recently
     const lastSync = await prisma.syncLog.findFirst({
       orderBy: { createdAt: "desc" }
     })
 
     if (lastSync) {
       const hoursSince = (Date.now() - lastSync.createdAt.getTime()) / (1000 * 60 * 60)
-      if (hoursSince < SYNC_COOLDOWN_HOURS) {
+      if (hoursSince < syncIntervalHours) {
         const totalVideos = await prisma.video.count()
         const skipReason = `Recent sync exists (${hoursSince.toFixed(1)}h ago, type: ${lastSync.type})`
 
@@ -88,9 +91,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Obtener canales activos que no tengan error
+    // Obtener canales activos que no tengan error y tengan sync habilitado
     const subscriptions = await prisma.subscription.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, syncEnabled: true },
       include: { syncStatus: true }
     })
 

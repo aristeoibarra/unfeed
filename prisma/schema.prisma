@@ -17,12 +17,13 @@ model Category {
 }
 
 model Subscription {
-  id        Int       @id @default(autoincrement())
-  channelId String    @unique
-  name      String
-  thumbnail String?
-  createdAt DateTime  @default(now())
-  deletedAt DateTime? // null = activo, timestamp = eliminado (soft delete)
+  id          Int       @id @default(autoincrement())
+  channelId   String    @unique
+  name        String
+  thumbnail   String?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime? // null = activo, timestamp = eliminado (soft delete)
+  syncEnabled Boolean   @default(true) // false = pausar sync automático para este canal
 
   // Categoría (opcional)
   categoryId Int?
@@ -132,6 +133,7 @@ model Settings {
   weeklyLimitMinutes    Int?    // null = no limit
   preferredLanguage     String  @default("es")  // "es" | "en" - YouTube UI/subtitle language
   autoShowSubtitles     Boolean @default(false) // Show subtitles automatically
+  syncIntervalHours     Int     @default(6)     // 3 | 6 | 12 | 24 - cron sync interval
 }
 
 model WatchHistory {

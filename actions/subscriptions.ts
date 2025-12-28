@@ -123,6 +123,28 @@ export async function deleteSubscription(id: number): Promise<ActionResult<null>
   }
 }
 
+// Toggle sync enabled/disabled for a subscription
+export async function toggleSyncEnabled(id: number): Promise<ActionResult<boolean>> {
+  try {
+    const subscription = await prisma.subscription.findUnique({ where: { id } })
+    if (!subscription) {
+      return { success: false, error: "Subscription not found" }
+    }
+
+    const updated = await prisma.subscription.update({
+      where: { id },
+      data: { syncEnabled: !subscription.syncEnabled }
+    })
+
+    revalidatePath("/channels")
+
+    return { success: true, data: updated.syncEnabled }
+  } catch (error) {
+    console.error("Error toggling sync enabled:", error)
+    return { success: false, error: "Failed to toggle sync" }
+  }
+}
+
 // Hard delete: Borra completamente (para limpieza manual)
 export async function hardDeleteSubscription(id: number): Promise<ActionResult<null>> {
   try {

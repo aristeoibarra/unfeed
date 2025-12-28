@@ -12,7 +12,8 @@ import {
   SkipForward,
   Loader2,
   Database,
-  Tv
+  Tv,
+  Zap
 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
 
@@ -33,7 +34,14 @@ interface SyncSummary {
   lastSync: SyncLog | null
   nextAutoSync: Date | null
   channelCount: number
+  enabledChannelCount: number
   totalVideos: number
+  quota: {
+    dailyUnitsEstimate: number
+    dailyQuota: number
+    percentage: number
+    syncsPerDay: number
+  }
 }
 
 interface SyncStatusProps {
@@ -134,7 +142,10 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Channels</p>
-            <p className="text-sm font-medium">{syncInfo.channelCount}</p>
+            <p className="text-sm font-medium">
+              {syncInfo.enabledChannelCount}/{syncInfo.channelCount}
+              <span className="text-xs text-gray-400 ml-1">syncing</span>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -146,6 +157,35 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
             <p className="text-sm font-medium">{syncInfo.totalVideos.toLocaleString()}</p>
           </div>
         </div>
+      </div>
+
+      {/* Quota estimate */}
+      <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Zap className="h-4 w-4 text-yellow-500" />
+          <span className="text-sm font-medium">Estimated Daily API Usage</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${
+                syncInfo.quota.percentage > 80
+                  ? "bg-red-500"
+                  : syncInfo.quota.percentage > 50
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }`}
+              style={{ width: `${Math.min(100, syncInfo.quota.percentage)}%` }}
+            />
+          </div>
+          <span className="text-sm font-medium min-w-[45px] text-right">
+            {syncInfo.quota.percentage}%
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          ~{syncInfo.quota.dailyUnitsEstimate.toLocaleString()} / {syncInfo.quota.dailyQuota.toLocaleString()} units
+          ({syncInfo.quota.syncsPerDay}x/day)
+        </p>
       </div>
 
       {/* Sync button */}

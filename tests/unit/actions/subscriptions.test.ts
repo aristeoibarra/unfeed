@@ -20,6 +20,7 @@ import {
   addSubscription,
   deleteSubscription,
   hardDeleteSubscription,
+  toggleSyncEnabled,
 } from "@/actions/subscriptions";
 
 const mockGetChannelInfo = getChannelInfo as ReturnType<typeof vi.fn>;
@@ -226,6 +227,77 @@ describe("actions/subscriptions", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toBe("Subscription not found");
+      }
+    });
+  });
+
+  describe("toggleSyncEnabled", () => {
+    it("toggles syncEnabled from true to false", async () => {
+      prismaMock.subscription.findUnique.mockResolvedValue({
+        id: 1,
+        channelId: "ch1",
+        syncEnabled: true,
+      });
+      prismaMock.subscription.update.mockResolvedValue({
+        id: 1,
+        syncEnabled: false,
+      });
+
+      const result = await toggleSyncEnabled(1);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe(false);
+      }
+      expect(prismaMock.subscription.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { syncEnabled: false },
+      });
+    });
+
+    it("toggles syncEnabled from false to true", async () => {
+      prismaMock.subscription.findUnique.mockResolvedValue({
+        id: 1,
+        channelId: "ch1",
+        syncEnabled: false,
+      });
+      prismaMock.subscription.update.mockResolvedValue({
+        id: 1,
+        syncEnabled: true,
+      });
+
+      const result = await toggleSyncEnabled(1);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe(true);
+      }
+    });
+
+    it("returns error when subscription not found", async () => {
+      prismaMock.subscription.findUnique.mockResolvedValue(null);
+
+      const result = await toggleSyncEnabled(999);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toBe("Subscription not found");
+      }
+    });
+
+    it("returns error on database failure", async () => {
+      prismaMock.subscription.findUnique.mockResolvedValue({
+        id: 1,
+        channelId: "ch1",
+        syncEnabled: true,
+      });
+      prismaMock.subscription.update.mockRejectedValue(new Error("DB error"));
+
+      const result = await toggleSyncEnabled(1);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toBe("Failed to toggle sync");
       }
     });
   });

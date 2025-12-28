@@ -9,7 +9,12 @@ vi.mock("@/lib/youtube", () => ({
   getChannelVideos: vi.fn(),
 }));
 
+vi.mock("@/actions/settings", () => ({
+  getSyncIntervalHours: vi.fn(() => Promise.resolve(6)),
+}));
+
 import { getChannelVideos } from "@/lib/youtube";
+import { getSyncIntervalHours } from "@/actions/settings";
 import {
   getSyncStatus,
   syncVideos,
@@ -18,10 +23,12 @@ import {
 } from "@/actions/sync";
 
 const mockGetChannelVideos = getChannelVideos as ReturnType<typeof vi.fn>;
+const mockGetSyncIntervalHours = getSyncIntervalHours as ReturnType<typeof vi.fn>;
 
 describe("actions/sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetSyncIntervalHours.mockResolvedValue(6);
   });
 
   describe("getSyncStatus", () => {
@@ -38,7 +45,7 @@ describe("actions/sync", () => {
       expect(result.subscriptionCount).toBe(1);
     });
 
-    it("returns needs sync when sync is older than 6 hours", async () => {
+    it("returns needs sync when sync is older than configured interval", async () => {
       const oldDate = new Date();
       oldDate.setHours(oldDate.getHours() - 7);
 
@@ -54,6 +61,46 @@ describe("actions/sync", () => {
 
       expect(result.needsSync).toBe(true);
       expect(result.cachedVideoCount).toBe(50);
+    });
+
+    it("respects custom sync interval from settings", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(12);
+
+      const oldDate = new Date();
+      oldDate.setHours(oldDate.getHours() - 10); // 10 hours ago
+
+      prismaMock.subscription.findMany.mockResolvedValue([
+        { id: 1, channelId: "ch1", name: "Channel 1", deletedAt: null },
+      ]);
+      prismaMock.syncStatus.findMany.mockResolvedValue([
+        { channelId: "ch1", lastSyncedAt: oldDate, status: "ok" },
+      ]);
+      prismaMock.video.count.mockResolvedValue(50);
+
+      const result = await getSyncStatus();
+
+      // With 12h interval, 10h old sync should NOT need sync yet
+      expect(result.needsSync).toBe(false);
+    });
+
+    it("needs sync when older than custom interval", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(3);
+
+      const oldDate = new Date();
+      oldDate.setHours(oldDate.getHours() - 4); // 4 hours ago
+
+      prismaMock.subscription.findMany.mockResolvedValue([
+        { id: 1, channelId: "ch1", name: "Channel 1", deletedAt: null },
+      ]);
+      prismaMock.syncStatus.findMany.mockResolvedValue([
+        { channelId: "ch1", lastSyncedAt: oldDate, status: "ok" },
+      ]);
+      prismaMock.video.count.mockResolvedValue(50);
+
+      const result = await getSyncStatus();
+
+      // With 3h interval, 4h old sync SHOULD need sync
+      expect(result.needsSync).toBe(true);
     });
 
     it("returns no sync needed when recent sync exists", async () => {
@@ -268,13 +315,16 @@ describe("actions/sync", () => {
       };
 
       prismaMock.syncLog.findFirst.mockResolvedValue(mockLastSync);
-      prismaMock.subscription.count.mockResolvedValue(10);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(10) // total
+        .mockResolvedValueOnce(8); // enabled
       prismaMock.video.count.mockResolvedValue(500);
 
       const result = await getSyncSummary();
 
       expect(result.lastSync).toEqual(mockLastSync);
       expect(result.channelCount).toBe(10);
+      expect(result.enabledChannelCount).toBe(8);
       expect(result.totalVideos).toBe(500);
       expect(result.nextAutoSync).not.toBeNull();
     });
@@ -291,7 +341,9 @@ describe("actions/sync", () => {
       };
 
       prismaMock.syncLog.findFirst.mockResolvedValue(mockLastSync);
-      prismaMock.subscription.count.mockResolvedValue(5);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(5);
       prismaMock.video.count.mockResolvedValue(100);
 
       const result = await getSyncSummary();
@@ -301,7 +353,9 @@ describe("actions/sync", () => {
 
     it("handles no previous syncs", async () => {
       prismaMock.syncLog.findFirst.mockResolvedValue(null);
-      prismaMock.subscription.count.mockResolvedValue(3);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(3)
+        .mockResolvedValueOnce(3);
       prismaMock.video.count.mockResolvedValue(0);
 
       const result = await getSyncSummary();
@@ -314,7 +368,9 @@ describe("actions/sync", () => {
 
     it("excludes skipped syncs from lastSync", async () => {
       prismaMock.syncLog.findFirst.mockResolvedValue(null);
-      prismaMock.subscription.count.mockResolvedValue(5);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(5);
       prismaMock.video.count.mockResolvedValue(100);
 
       await getSyncSummary();
@@ -323,6 +379,95 @@ describe("actions/sync", () => {
         where: { status: { not: "skipped" } },
         orderBy: { createdAt: "desc" },
       });
+    });
+
+    it("calculates nextAutoSync based on configured interval", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(12);
+
+      const lastSyncDate = new Date();
+      lastSyncDate.setHours(lastSyncDate.getHours() - 2);
+
+      const mockLastSync = {
+        id: 1,
+        type: "manual",
+        status: "success",
+        createdAt: lastSyncDate,
+      };
+
+      prismaMock.syncLog.findFirst.mockResolvedValue(mockLastSync);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(5);
+      prismaMock.video.count.mockResolvedValue(100);
+
+      const result = await getSyncSummary();
+
+      // With 12h interval and 2h since last sync, nextAutoSync should be ~10h from now
+      expect(result.nextAutoSync).not.toBeNull();
+      const hoursUntilNext =
+        (result.nextAutoSync!.getTime() - Date.now()) / (1000 * 60 * 60);
+      expect(hoursUntilNext).toBeGreaterThan(9);
+      expect(hoursUntilNext).toBeLessThan(11);
+    });
+
+    it("returns null nextAutoSync when past configured interval", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(3);
+
+      const oldSyncDate = new Date();
+      oldSyncDate.setHours(oldSyncDate.getHours() - 5); // 5 hours ago
+
+      const mockLastSync = {
+        id: 1,
+        type: "auto",
+        status: "success",
+        createdAt: oldSyncDate,
+      };
+
+      prismaMock.syncLog.findFirst.mockResolvedValue(mockLastSync);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(5);
+      prismaMock.video.count.mockResolvedValue(100);
+
+      const result = await getSyncSummary();
+
+      // With 3h interval and 5h since last sync, should already be due
+      expect(result.nextAutoSync).toBeNull();
+    });
+
+    it("calculates estimated quota usage", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(6); // 4 syncs per day
+
+      prismaMock.syncLog.findFirst.mockResolvedValue(null);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(10) // total
+        .mockResolvedValueOnce(5); // enabled
+      prismaMock.video.count.mockResolvedValue(100);
+
+      const result = await getSyncSummary();
+
+      // 5 enabled channels * 101 units * 4 syncs/day = 2020 units
+      expect(result.quota.dailyUnitsEstimate).toBe(2020);
+      expect(result.quota.dailyQuota).toBe(10000);
+      expect(result.quota.percentage).toBe(20);
+      expect(result.quota.syncsPerDay).toBe(4);
+    });
+
+    it("calculates quota for 24h interval", async () => {
+      mockGetSyncIntervalHours.mockResolvedValue(24); // 1 sync per day
+
+      prismaMock.syncLog.findFirst.mockResolvedValue(null);
+      prismaMock.subscription.count
+        .mockResolvedValueOnce(20) // total
+        .mockResolvedValueOnce(10); // enabled
+      prismaMock.video.count.mockResolvedValue(500);
+
+      const result = await getSyncSummary();
+
+      // 10 enabled channels * 101 units * 1 sync/day = 1010 units
+      expect(result.quota.dailyUnitsEstimate).toBe(1010);
+      expect(result.quota.syncsPerDay).toBe(1);
+      expect(result.quota.percentage).toBe(10);
     });
   });
 });

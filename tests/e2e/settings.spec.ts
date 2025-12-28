@@ -92,6 +92,27 @@ test.describe("Settings Page", () => {
       const logSection = page.locator("text=Recent Sync Logs").locator("..");
       await expect(logSection).toBeVisible();
     });
+
+    test.skip("should display sync interval selector", async ({ page }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      await expect(page.getByText(/auto-sync interval/i)).toBeVisible();
+      await expect(page.getByRole("button", { name: "3h" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "6h" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "12h" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "24h" })).toBeVisible();
+    });
+
+    test.skip("should update sync interval when clicking a different option", async ({
+      page,
+    }) => {
+      // Skip: Requires authentication
+      await page.goto("/settings");
+      const button12h = page.getByRole("button", { name: "12h" });
+      await button12h.click();
+      // Should show success state
+      await expect(button12h).toHaveAttribute("aria-pressed", "true");
+    });
   });
 
   test.describe("Clear History Dialog", () => {
