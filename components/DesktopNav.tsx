@@ -11,7 +11,7 @@ const navItems = [
   { href: "/liked", label: "Liked" },
   { href: "/playlists", label: "Playlists" },
   { href: "/watch-later", label: "Watch Later" },
-  { href: "/subscriptions", label: "Subscriptions" },
+  { href: "/channels", label: "Channels" },
   { href: "/settings", label: "Settings" },
 ]
 
