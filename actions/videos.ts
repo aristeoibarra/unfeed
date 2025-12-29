@@ -104,11 +104,11 @@ export async function getVideos(
     channelId: { in: channelIds }
   }
 
-  // Add search filter
+  // Add search filter (SQLite LIKE is case-insensitive by default for ASCII)
   if (search && search.trim().length > 0) {
     where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { channelName: { contains: search, mode: "insensitive" } }
+      { title: { contains: search } },
+      { channelName: { contains: search } }
     ]
   }
 
