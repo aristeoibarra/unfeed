@@ -24,7 +24,7 @@ export default async function SettingsPage() {
   ])
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto space-y-8 pb-24 md:pb-0">
       {/* Page header */}
       <header className="flex items-center gap-4">
         <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-xl">

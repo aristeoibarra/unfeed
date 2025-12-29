@@ -90,7 +90,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
   return (
     <div className="space-y-4">
       {/* Create new category */}
-      <form onSubmit={handleCreate} className="flex gap-2">
+      <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={newName}
@@ -99,26 +99,28 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={loading}
         />
-        <select
-          value={newColor}
-          onChange={(e) => setNewColor(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          style={{ borderLeftColor: newColor, borderLeftWidth: 4 }}
-          disabled={loading}
-        >
-          {COLORS.map(color => (
-            <option key={color.value} value={color.value}>
-              {color.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          disabled={loading || !newName.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          Add
-        </button>
+        <div className="flex gap-2">
+          <select
+            value={newColor}
+            onChange={(e) => setNewColor(e.target.value)}
+            className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ borderLeftColor: newColor, borderLeftWidth: 4 }}
+            disabled={loading}
+          >
+            {COLORS.map(color => (
+              <option key={color.value} value={color.value}>
+                {color.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={loading || !newName.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+          >
+            Add
+          </button>
+        </div>
       </form>
 
       {error && (
@@ -139,7 +141,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
               style={{ borderLeftColor: category.color || "#6B7280", borderLeftWidth: 4 }}
             >
               {editingId === category.id ? (
-                <>
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <input
                     type="text"
                     value={editName}
@@ -147,31 +149,33 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
                     className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
                     autoFocus
                   />
-                  <select
-                    value={editColor}
-                    onChange={(e) => setEditColor(e.target.value)}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
-                  >
-                    {COLORS.map(color => (
-                      <option key={color.value} value={color.value}>
-                        {color.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => handleUpdate(category.id)}
-                    disabled={loading}
-                    className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    Cancel
-                  </button>
-                </>
+                  <div className="flex gap-2">
+                    <select
+                      value={editColor}
+                      onChange={(e) => setEditColor(e.target.value)}
+                      className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                    >
+                      {COLORS.map(color => (
+                        <option key={color.value} value={color.value}>
+                          {color.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => handleUpdate(category.id)}
+                      disabled={loading}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <>
                   <span className="flex-1 font-medium">{category.name}</span>
