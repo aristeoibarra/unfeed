@@ -11,19 +11,20 @@
  */
 
 import bcrypt from "bcryptjs"
-import { PrismaClient } from "../lib/generated/prisma/client/index.js"
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import Database from "better-sqlite3"
 import path from "path"
 import { fileURLToPath } from "url"
+import { randomBytes } from "crypto"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const dbPath = path.join(__dirname, "..", "prod.db")
 
-const adapter = new PrismaBetterSqlite3({
-  url: `file:${dbPath}`
-})
+const db = new Database(dbPath)
 
-const prisma = new PrismaClient({ adapter })
+// Generate cuid-like ID
+function cuid() {
+  return 'c' + randomBytes(12).toString('hex')
+}
 
 const email = process.argv[2]
 const password = process.argv[3]
@@ -52,25 +53,33 @@ const saltRounds = 10
 const passwordHash = await bcrypt.hash(password, saltRounds)
 
 try {
-  const user = await prisma.user.upsert({
-    where: { email: email.toLowerCase() },
-    update: {
-      passwordHash,
-      updatedAt: new Date(),
-    },
-    create: {
-      email: email.toLowerCase(),
-      passwordHash,
-    },
-  })
+  const emailLower = email.toLowerCase()
+  const now = new Date().toISOString()
+
+  // Check if user exists
+  const existing = db.prepare('SELECT * FROM User WHERE email = ?').get(emailLower)
+
+  let user
+  if (existing) {
+    // Update existing user
+    db.prepare('UPDATE User SET passwordHash = ?, updatedAt = ? WHERE email = ?')
+      .run(passwordHash, now, emailLower)
+    user = db.prepare('SELECT * FROM User WHERE email = ?').get(emailLower)
+  } else {
+    // Create new user
+    const id = cuid()
+    db.prepare('INSERT INTO User (id, email, passwordHash, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)')
+      .run(id, emailLower, passwordHash, now, now)
+    user = db.prepare('SELECT * FROM User WHERE id = ?').get(id)
+  }
 
   console.log("\n----------------------------------------")
   console.log("User Created/Updated Successfully")
   console.log("----------------------------------------\n")
   console.log(`Email: ${user.email}`)
   console.log(`ID: ${user.id}`)
-  console.log(`Created: ${user.createdAt.toISOString()}`)
-  console.log(`Updated: ${user.updatedAt.toISOString()}`)
+  console.log(`Created: ${user.createdAt}`)
+  console.log(`Updated: ${user.updatedAt}`)
   console.log("\n----------------------------------------")
   console.log("You can now login with these credentials")
   console.log("----------------------------------------\n")
@@ -78,5 +87,5 @@ try {
   console.error("\n[Error] Failed to create user:", error)
   process.exit(1)
 } finally {
-  await prisma.$disconnect()
+  db.close()
 }
