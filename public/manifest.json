@@ -4,8 +4,8 @@
   "description": "YouTube sin distracciones",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#0f0f0f",
+  "background_color": "#0d0c0c",
+  "theme_color": "#0d0c0c",
   "orientation": "any",
   "icons": [
     {
