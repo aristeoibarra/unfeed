@@ -158,7 +158,6 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        loading={isLoading}
         className="w-full h-11 text-base"
       >
         {isLoading ? "Iniciando sesion..." : "Iniciar Sesion"}
