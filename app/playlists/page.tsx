@@ -1,8 +1,6 @@
 import { getPlaylists } from "@/actions/playlists"
 import { PlaylistsPageClient } from "./PlaylistsPageClient"
-import { Button } from "@/components/ui/button"
-import { ListVideo, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { ListVideo } from "lucide-react"
 
 export const metadata = {
   title: "Playlists - Unfeed",
@@ -27,12 +25,6 @@ export default async function PlaylistsPage() {
             </p>
           </div>
         </div>
-        <Link href="/">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to feed
-          </Button>
-        </Link>
       </header>
 
       <PlaylistsPageClient initialPlaylists={playlists} />

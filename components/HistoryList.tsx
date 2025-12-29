@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { removeFromHistory, type HistoryEntry, type GroupedHistory } from "@/actions/history"
@@ -174,6 +174,12 @@ export function HistoryList({ initialEntries, initialHasMore, onLoadMore }: Hist
   const [entries, setEntries] = useState(initialEntries)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [loading, setLoading] = useState(false)
+
+  // Sync state when props change (e.g., after search)
+  useEffect(() => {
+    setEntries(initialEntries)
+    setHasMore(initialHasMore)
+  }, [initialEntries, initialHasMore])
 
   async function handleLoadMore() {
     setLoading(true)

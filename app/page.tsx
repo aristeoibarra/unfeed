@@ -81,7 +81,7 @@ export default async function Home({ searchParams }: HomeProps) {
           title="No subscriptions yet"
           description="Add some channels to start seeing their latest videos in your feed. No distractions, just the content you care about."
           action={
-            <Link href="/subscriptions">
+            <Link href="/channels">
               <Button>
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Add your first subscription

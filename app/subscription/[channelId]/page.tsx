@@ -5,7 +5,6 @@ import { getWatchedVideoIds } from "@/actions/watched"
 import { getReactions } from "@/actions/reactions"
 import { SubscriptionHeader } from "@/components/SubscriptionHeader"
 import { VideoFeed } from "@/components/VideoFeed"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
 interface SubscriptionPageProps {
@@ -66,12 +65,6 @@ export default async function SubscriptionPage({ params }: SubscriptionPageProps
         />
       )}
 
-      <Link
-        href="/"
-        className="inline-block text-blue-600 dark:text-blue-400 hover:underline"
-      >
-        Back to feed
-      </Link>
     </div>
   )
 }

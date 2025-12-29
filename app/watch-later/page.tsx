@@ -3,7 +3,7 @@ import { getWatchedVideoIds } from "@/actions/watched"
 import { VideoCard } from "@/components/VideoCard"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
-import { BookmarkCheck, ArrowLeft, Video } from "lucide-react"
+import { BookmarkCheck, Video } from "lucide-react"
 import Link from "next/link"
 
 export const metadata = {
@@ -33,12 +33,6 @@ export default async function WatchLaterPage() {
             </p>
           </div>
         </div>
-        <Link href="/">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to feed
-          </Button>
-        </Link>
       </header>
 
       {watchLater.length === 0 ? (

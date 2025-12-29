@@ -2,7 +2,6 @@ import Image from "next/image"
 import { getAllStats } from "@/actions/stats"
 import {
   BarChart3,
-  ArrowLeft,
   Clock,
   PlayCircle,
   CheckCircle2,
@@ -10,7 +9,6 @@ import {
   Moon,
   TrendingUp
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
@@ -67,12 +65,6 @@ export default async function StatsPage() {
             </p>
           </div>
         </div>
-        <Link href="/">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to feed
-          </Button>
-        </Link>
       </header>
 
       {/* Weekly Overview */}
