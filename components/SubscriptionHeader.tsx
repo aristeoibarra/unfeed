@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 interface SubscriptionHeaderProps {
   subscription: {
     id: number
@@ -12,10 +14,12 @@ export function SubscriptionHeader({ subscription, videoCount }: SubscriptionHea
   return (
     <div className="flex items-center gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
       {subscription.thumbnail && (
-        <img
+        <Image
           src={subscription.thumbnail}
           alt={subscription.name}
-          className="w-20 h-20 rounded-full"
+          width={80}
+          height={80}
+          className="rounded-full"
         />
       )}
       <div className="flex-1">

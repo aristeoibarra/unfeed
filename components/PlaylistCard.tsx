@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { deletePlaylist, updatePlaylist, type PlaylistData } from "@/actions/playlists"
 import {
   Dialog,
@@ -98,12 +99,15 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
           {/* Thumbnail grid */}
           <div className="w-32 h-20 flex-shrink-0 grid grid-cols-2 grid-rows-2 gap-0.5 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
             {playlist.previewThumbnails.slice(0, 4).map((thumb, i) => (
-              <img
-                key={i}
-                src={thumb}
-                alt=""
-                className="w-full h-full object-cover"
-              />
+              <div key={i} className="relative w-full h-full">
+                <Image
+                  src={thumb}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
+              </div>
             ))}
             {Array.from({ length: Math.max(0, 4 - playlist.previewThumbnails.length) }).map((_, i) => (
               <div key={`empty-${i}`} className="w-full h-full bg-gray-300 dark:bg-gray-600" />

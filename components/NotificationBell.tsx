@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Bell } from "lucide-react"
 import { getUnreadCount, getRecentNotifications, markAsRead, markAllAsRead, type NotificationData } from "@/actions/notifications"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -68,10 +69,12 @@ function NotificationItem({
       }`}
     >
       <div className="relative flex-shrink-0 w-24 h-14 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
-        <img
+        <Image
           src={notification.thumbnail}
           alt=""
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes="96px"
         />
         {notification.duration && (
           <span className="absolute bottom-0.5 right-0.5 px-1 text-[10px] bg-black/80 text-white rounded">

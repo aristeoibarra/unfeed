@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { removeFromPlaylist, reorderPlaylistVideo, type PlaylistVideoData } from "@/actions/playlists"
 
 interface PlaylistVideoListProps {
@@ -99,11 +100,13 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
           </span>
 
           {/* Thumbnail */}
-          <Link href={`/watch/${video.videoId}`} className="relative w-24 flex-shrink-0">
-            <img
+          <Link href={`/watch/${video.videoId}`} className="relative w-24 aspect-video flex-shrink-0">
+            <Image
               src={video.thumbnail}
               alt={video.title}
-              className="w-full aspect-video object-cover rounded"
+              fill
+              className="object-cover rounded"
+              sizes="96px"
             />
             {video.duration && (
               <div className="absolute bottom-1 right-1 px-1 py-0.5 bg-black/80 text-white text-xs font-medium rounded">

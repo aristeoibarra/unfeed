@@ -60,8 +60,8 @@ export async function GET(
     // 2. Start background download if disk space available
     let downloading = false
     if (await canDownload()) {
-      downloadAudioFile(videoId).catch((err) => {
-        console.log(`Background download for ${videoId}:`, err.message)
+      downloadAudioFile(videoId).catch(() => {
+        // Silent fail for background download - not critical for playback
       })
       downloading = true
     }

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { getAllStats } from "@/actions/stats"
 import {
   BarChart3,
@@ -323,11 +324,15 @@ export default async function StatsPage() {
                   href={`/watch/${video.videoId}`}
                   className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  <img
-                    src={video.thumbnail}
-                    alt=""
-                    className="w-20 h-12 object-cover rounded"
-                  />
+                  <div className="relative w-20 h-12 flex-shrink-0">
+                    <Image
+                      src={video.thumbnail}
+                      alt=""
+                      fill
+                      className="object-cover rounded"
+                      sizes="80px"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{video.title}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">

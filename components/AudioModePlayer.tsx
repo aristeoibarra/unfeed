@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import { usePlayer } from "@/contexts/PlayerContext"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -137,11 +138,13 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
 
         {/* Thumbnail - Larger on desktop for better visual hierarchy */}
         <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-xl overflow-hidden shadow-lg ring-1 ring-[var(--border)]">
-          <img
+          <Image
             src={currentVideo.thumbnail}
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 160px, 224px"
           />
           {isLoading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

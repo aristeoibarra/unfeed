@@ -4,6 +4,7 @@ import { deleteSubscription } from "@/actions/subscriptions"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Trash2, Loader2, ExternalLink, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -85,10 +86,12 @@ export function SubscriptionList({ subscriptions }: SubscriptionListProps) {
                 className="flex items-center gap-3 flex-1 min-w-0 group"
               >
                 {sub.thumbnail ? (
-                  <img
+                  <Image
                     src={sub.thumbnail}
                     alt=""
-                    className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                    width={40}
+                    height={40}
+                    className="rounded-full flex-shrink-0 object-cover"
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full flex-shrink-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">

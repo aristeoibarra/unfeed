@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useRef, useEffect } from "react"
+import Image from "next/image"
 
 interface Category {
   id: number
@@ -188,7 +189,7 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
                         )}
                       </div>
                       {sub.thumbnail && (
-                        <img src={sub.thumbnail} alt="" className="w-5 h-5 rounded-full flex-shrink-0" />
+                        <Image src={sub.thumbnail} alt="" width={20} height={20} className="rounded-full flex-shrink-0" />
                       )}
                       <span className="truncate">{sub.name}</span>
                     </button>

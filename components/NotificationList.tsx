@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { getNotifications, markAsRead, markAllAsRead, type NotificationData } from "@/actions/notifications"
 
 // Formatea duración de segundos a MM:SS o H:MM:SS
@@ -173,10 +174,12 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
                 >
                   {/* Thumbnail */}
                   <div className="relative flex-shrink-0 w-32 h-20 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
-                    <img
+                    <Image
                       src={notification.thumbnail}
                       alt=""
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="128px"
                     />
                     {notification.duration && (
                       <span className="absolute bottom-1 right-1 px-1.5 py-0.5 text-xs bg-black/80 text-white rounded">

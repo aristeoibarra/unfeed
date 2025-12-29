@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { deleteSubscription, toggleSyncEnabled } from "@/actions/subscriptions"
 import { assignCategory, type CategoryData } from "@/actions/categories"
 import { syncSingleChannel } from "@/actions/sync"
@@ -138,10 +139,12 @@ export function SubscriptionListWithCategories({
                 >
                   {/* Thumbnail */}
                   {subscription.thumbnail ? (
-                    <img
+                    <Image
                       src={subscription.thumbnail}
                       alt={subscription.name}
-                      className="w-10 h-10 rounded-full"
+                      width={40}
+                      height={40}
+                      className="rounded-full"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600" />

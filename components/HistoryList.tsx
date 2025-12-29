@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { removeFromHistory, type HistoryEntry, type GroupedHistory } from "@/actions/history"
 
 function startOfDay(date: Date): Date {
@@ -99,11 +100,13 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
       href={`/watch/${entry.videoId}`}
       className="flex gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg group"
     >
-      <div className="relative w-40 flex-shrink-0">
-        <img
+      <div className="relative w-40 aspect-video flex-shrink-0">
+        <Image
           src={entry.thumbnail}
           alt={entry.title}
-          className="w-full aspect-video object-cover rounded"
+          fill
+          className="object-cover rounded"
+          sizes="160px"
         />
         {entry.duration && (
           <div className="absolute bottom-1 right-1 px-1 py-0.5 bg-black/80 text-white text-xs font-medium rounded">

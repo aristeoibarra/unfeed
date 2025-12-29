@@ -4,6 +4,7 @@ import { usePlayer } from "@/contexts/PlayerContext"
 import { WatchTimeProgress } from "@/components/WatchTimeProgress"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60)
@@ -50,12 +51,14 @@ export function MiniPlayer() {
             {/* Thumbnail */}
             <Link
               href={`/watch/${currentVideo.videoId}`}
-              className="w-12 h-12 flex-shrink-0 rounded overflow-hidden"
+              className="relative w-12 h-12 flex-shrink-0 rounded overflow-hidden"
             >
-              <img
+              <Image
                 src={currentVideo.thumbnail}
                 alt={currentVideo.title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="48px"
               />
             </Link>
 
