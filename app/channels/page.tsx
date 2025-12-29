@@ -17,7 +17,7 @@ export default async function ChannelsPage() {
   ])
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="space-y-8">
       {/* Page header */}
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Channels</h1>
