@@ -2,6 +2,17 @@
 
 import { saveNote, deleteNote } from "@/actions/notes"
 import { useState, useEffect, useRef, useCallback } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface VideoNotesProps {
   videoId: string
@@ -49,11 +60,9 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
   }, [content, saveNoteRef, initialNote?.content])
 
   async function handleDelete() {
-    if (confirm("Delete this note?")) {
-      await deleteNote(videoId)
-      setContent("")
-      setLastSaved(null)
-    }
+    await deleteNote(videoId)
+    setContent("")
+    setLastSaved(null)
   }
 
   return (
@@ -66,12 +75,30 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
             <span>Saved {formatTime(lastSaved)}</span>
           )}
           {content && (
-            <button
-              onClick={handleDelete}
-              className="text-red-500 hover:text-red-600"
-            >
-              Delete
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="text-red-500 hover:text-red-600">
+                  Delete
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete note?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete your note for this video.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>

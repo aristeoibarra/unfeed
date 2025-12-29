@@ -2,6 +2,16 @@
 
 import { useState } from "react"
 import { createCategory, updateCategory, deleteCategory, type CategoryData } from "@/actions/categories"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // Kanagawa-inspired color palette for categories
 const COLORS = [
@@ -28,6 +38,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editName, setEditName] = useState("")
   const [editColor, setEditColor] = useState("")
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -68,10 +79,6 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this category? Subscriptions will be moved to uncategorized.")) {
-      return
-    }
-
     setLoading(true)
     const result = await deleteCategory(id)
 
@@ -80,6 +87,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
     }
 
     setLoading(false)
+    setConfirmDeleteId(null)
   }
 
   function startEditing(category: CategoryData) {
@@ -193,7 +201,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDelete(category.id)}
+                    onClick={() => setConfirmDeleteId(category.id)}
                     className="p-1 text-muted-foreground hover:text-destructive"
                     title="Delete"
                   >
@@ -207,6 +215,27 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
           ))}
         </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={confirmDeleteId !== null} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete category?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Subscriptions in this category will be moved to uncategorized.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -6,6 +6,16 @@ import Image from "next/image"
 import { deleteSubscription, toggleSyncEnabled } from "@/actions/subscriptions"
 import { assignCategory, type CategoryData } from "@/actions/categories"
 import { syncSingleChannel } from "@/actions/sync"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Subscription {
   id: number
@@ -28,6 +38,7 @@ export function SubscriptionListWithCategories({
 }: SubscriptionListWithCategoriesProps) {
   const [subscriptions, setSubscriptions] = useState(initialSubscriptions)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [syncingChannelId, setSyncingChannelId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -48,8 +59,6 @@ export function SubscriptionListWithCategories({
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Remove this subscription?")) return
-
     setDeletingId(id)
     const result = await deleteSubscription(id)
 
@@ -58,6 +67,7 @@ export function SubscriptionListWithCategories({
     }
 
     setDeletingId(null)
+    setConfirmDeleteId(null)
   }
 
   async function handleCategoryChange(subscriptionId: number, categoryId: string) {
@@ -222,7 +232,7 @@ export function SubscriptionListWithCategories({
 
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDelete(subscription.id)}
+                    onClick={() => setConfirmDeleteId(subscription.id)}
                     disabled={deletingId === subscription.id}
                     className="p-2 text-gray-500 hover:text-red-600 disabled:opacity-50"
                     title="Remove subscription"
@@ -248,6 +258,27 @@ export function SubscriptionListWithCategories({
           </div>
         )
       })}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={confirmDeleteId !== null} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the channel from your subscriptions. You can always add it back later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
