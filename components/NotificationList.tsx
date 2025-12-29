@@ -120,7 +120,7 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
           viewBox="0 0 24 24"
           strokeWidth={1}
           stroke="currentColor"
-          className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4"
+          className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4"
         >
           <path
             strokeLinecap="round"
@@ -128,8 +128,8 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
             d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
           />
         </svg>
-        <p className="text-gray-500">No notifications yet</p>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-muted-foreground">No notifications yet</p>
+        <p className="text-sm text-muted-foreground/70 mt-1">
           New videos from your subscriptions will appear here
         </p>
       </div>
@@ -143,7 +143,7 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
         <div className="flex justify-end">
           <button
             onClick={handleMarkAllAsRead}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             Mark all as read ({unreadCount})
           </button>
@@ -157,7 +157,7 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
 
         return (
           <div key={groupName}>
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3">
               {groupName}
             </h2>
             <div className="space-y-2">
@@ -168,12 +168,12 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
                   onClick={() => handleMarkAsRead(notification)}
                   className={`flex gap-4 p-4 rounded-lg border transition-colors ${
                     notification.isRead
-                      ? "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                      : "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                      ? "border-border hover:bg-muted/50"
+                      : "border-primary/30 bg-primary/5 hover:bg-primary/10"
                   }`}
                 >
                   {/* Thumbnail */}
-                  <div className="relative flex-shrink-0 w-32 h-20 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+                  <div className="relative flex-shrink-0 w-32 h-20 rounded overflow-hidden bg-muted">
                     <Image
                       src={notification.thumbnail}
                       alt=""
@@ -191,17 +191,17 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium line-clamp-2">{notification.title}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {notification.channelName}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground/70 mt-1">
                       {getTimeAgo(new Date(notification.createdAt))}
                     </p>
                   </div>
 
                   {/* Unread indicator */}
                   {!notification.isRead && (
-                    <div className="flex-shrink-0 w-3 h-3 mt-1 bg-blue-500 rounded-full" />
+                    <div className="flex-shrink-0 w-3 h-3 mt-1 bg-primary rounded-full" />
                   )}
                 </Link>
               ))}
@@ -216,7 +216,7 @@ export function NotificationList({ initialNotifications, initialHasMore }: Notif
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50"
+            className="px-6 py-2 bg-muted hover:bg-muted/80 rounded-lg disabled:opacity-50"
           >
             {loading ? "Loading..." : "Load more"}
           </button>

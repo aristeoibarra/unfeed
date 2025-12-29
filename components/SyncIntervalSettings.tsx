@@ -53,21 +53,21 @@ export function SyncIntervalSettings({
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-          <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+        <div className="p-2 bg-warning/10 rounded-lg">
+          <Clock className="h-5 w-5 text-warning" aria-hidden="true" />
         </div>
         <div>
           <p className="font-medium">Auto-sync interval</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             How often to fetch new videos
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden="true" />
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
         )}
-        <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+        <div className="flex rounded-lg border border-border p-1">
           {intervals.map((opt) => (
             <Button
               key={opt.hours}
@@ -78,8 +78,8 @@ export function SyncIntervalSettings({
               className={cn(
                 "px-3 py-1 h-8 rounded-md transition-colors",
                 interval === opt.hours
-                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  ? "bg-warning/20 text-warning-foreground"
+                  : "hover:bg-muted"
               )}
               aria-pressed={interval === opt.hours}
             >

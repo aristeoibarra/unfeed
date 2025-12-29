@@ -54,11 +54,11 @@ export function BottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[44px] px-3 py-2 rounded-lg transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                 "active:scale-95 transition-transform duration-100",
                 isActive
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-500 dark:text-gray-400"
+                  ? "text-primary"
+                  : "text-muted-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
@@ -82,11 +82,11 @@ export function BottomNav() {
             <button
               className={cn(
                 "flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[44px] px-3 py-2 rounded-lg transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                 "active:scale-95 transition-transform duration-100",
                 isMoreActive
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-500 dark:text-gray-400"
+                  ? "text-primary"
+                  : "text-muted-foreground"
               )}
               aria-label="More options"
             >
@@ -120,11 +120,11 @@ export function BottomNav() {
                     onClick={() => setOpen(false)}
                     className={cn(
                       "flex flex-col items-center justify-center gap-2 p-4 rounded-xl transition-colors",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                       "active:scale-95 transition-transform duration-100",
                       isActive
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >

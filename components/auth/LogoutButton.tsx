@@ -38,7 +38,7 @@ export function LogoutButton() {
       size="sm"
       onClick={handleLogout}
       disabled={isLoading}
-      className="gap-2 text-[var(--muted-foreground)] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+      className="gap-2 text-[var(--muted-foreground)] hover:text-destructive hover:bg-destructive/10"
       title="Cerrar sesion"
       aria-label="Cerrar sesion"
     >

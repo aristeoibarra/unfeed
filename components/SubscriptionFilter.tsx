@@ -109,8 +109,8 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
         onClick={selectAll}
         className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
           selectedIds.length === 0
-            ? "bg-blue-600 text-white"
-            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+            ? "bg-primary text-primary-foreground"
+            : "bg-muted hover:bg-muted/80"
         }`}
       >
         All
@@ -126,14 +126,14 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
             onClick={() => selectCategory(cat.id)}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center gap-1.5 ${
               isActive
-                ? "text-white"
-                : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "text-primary-foreground"
+                : "bg-muted hover:bg-muted/80"
             }`}
-            style={isActive ? { backgroundColor: cat.color || "#3B82F6" } : {}}
+            style={isActive ? { backgroundColor: cat.color || "#7E9CD8" } : {}}
           >
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: cat.color || "#6B7280" }}
+              style={{ backgroundColor: cat.color || "#7a8382" }}
             />
             {cat.name}
           </button>
@@ -147,8 +147,8 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
             onClick={() => setIsOpen(!isOpen)}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center gap-1 ${
               isCategoryActive(null)
-                ? "bg-gray-600 text-white"
-                : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-muted-foreground text-background"
+                : "bg-muted hover:bg-muted/80"
             }`}
           >
             +{uncategorizedChannels.length} channel{uncategorizedChannels.length !== 1 ? "s" : ""}
@@ -167,7 +167,7 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
           </button>
 
           {isOpen && (
-            <div className="absolute z-10 mt-2 w-64 max-h-64 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div className="absolute z-10 mt-2 w-64 max-h-64 overflow-y-auto bg-card border border-border rounded-lg shadow-lg">
               <div className="p-1">
                 {uncategorizedChannels.map((sub) => {
                   const isSelected = selectedIds.includes(sub.channelId)
@@ -175,12 +175,12 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
                     <button
                       key={sub.id}
                       onClick={() => toggleChannel(sub.channelId)}
-                      className={`w-full px-3 py-2 text-left text-sm rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
-                        isSelected ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                      className={`w-full px-3 py-2 text-left text-sm rounded-md hover:bg-muted flex items-center gap-2 ${
+                        isSelected ? "bg-primary/10" : ""
                       }`}
                     >
                       <div className={`w-4 h-4 border rounded flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "bg-blue-600 border-blue-600" : "border-gray-400"
+                        isSelected ? "bg-primary border-primary" : "border-muted-foreground"
                       }`}>
                         {isSelected && (
                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-3 h-3">

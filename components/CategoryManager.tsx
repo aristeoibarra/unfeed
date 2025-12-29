@@ -147,7 +147,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
             <div
               key={category.id}
               className="flex items-center gap-3 p-3 border border-border rounded-lg"
-              style={{ borderLeftColor: category.color || "#6B7280", borderLeftWidth: 4 }}
+              style={{ borderLeftColor: category.color || "#7a8382", borderLeftWidth: 4 }}
             >
               {editingId === category.id ? (
                 <div className="flex flex-col sm:flex-row gap-2 w-full">

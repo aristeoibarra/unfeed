@@ -80,7 +80,7 @@ export function HomeFilters() {
       {/* Search input */}
       <div className="relative flex-1 max-w-md">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
           aria-hidden="true"
         />
         <Input
@@ -115,7 +115,7 @@ export function HomeFilters() {
                 key={option.value}
                 onClick={() => handleSortChange(option.value)}
                 className={cn(
-                  currentSort === option.value && "bg-blue-50 dark:bg-blue-950"
+                  currentSort === option.value && "bg-primary/10"
                 )}
               >
                 {option.label}
@@ -130,7 +130,7 @@ export function HomeFilters() {
           onClick={toggleUnwatched}
           className={cn(
             "h-10 gap-2",
-            currentUnwatched && "bg-blue-600 hover:bg-blue-700"
+            currentUnwatched && "bg-primary hover:bg-primary/90"
           )}
           aria-pressed={currentUnwatched}
         >

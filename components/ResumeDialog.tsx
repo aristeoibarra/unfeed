@@ -97,9 +97,9 @@ export function ResumeDialogFull({
       >
         <DialogHeader className="space-y-3">
           {/* Icon and title - Clear visual hierarchy */}
-          <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Clock
-              className="h-6 w-6 text-blue-600 dark:text-blue-400"
+              className="h-6 w-6 text-primary"
               aria-hidden="true"
             />
           </div>
@@ -117,7 +117,7 @@ export function ResumeDialogFull({
             )}
             <span className="block text-[var(--muted-foreground)]">
               You left off at{" "}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
+              <span className="font-semibold text-primary">
                 {formattedProgress}
               </span>
               {formattedDuration && (
@@ -140,13 +140,13 @@ export function ResumeDialogFull({
             aria-valuemax={100}
           >
             <div
-              className="h-full bg-blue-500 dark:bg-blue-400 rounded-full transition-all duration-300"
+              className="h-full bg-primary rounded-full transition-all duration-300"
               style={{ width: `${percentage}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 text-xs text-[var(--muted-foreground)]">
             <span>{formattedProgress}</span>
-            <span className="font-medium text-blue-600 dark:text-blue-400">
+            <span className="font-medium text-primary">
               {percentage}% watched
             </span>
             {formattedDuration && <span>{formattedDuration}</span>}
@@ -166,7 +166,7 @@ export function ResumeDialogFull({
           <Button
             ref={resumeButtonRef}
             onClick={handleResume}
-            className="w-full sm:w-auto gap-2 bg-blue-600 hover:bg-blue-700"
+            className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90"
           >
             <Play className="h-4 w-4" aria-hidden="true" />
             Continue from {formattedProgress}

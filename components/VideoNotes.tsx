@@ -69,7 +69,7 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Notes</h3>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {saving && <span>Saving...</span>}
           {!saving && lastSaved && (
             <span>Saved {formatTime(lastSaved)}</span>
@@ -77,7 +77,7 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
           {content && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button className="text-red-500 hover:text-red-600">
+                <button className="text-destructive hover:text-destructive/80">
                   Delete
                 </button>
               </AlertDialogTrigger>
@@ -106,7 +106,7 @@ export function VideoNotes({ videoId, initialNote }: VideoNotesProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Add notes about this video..."
-        className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full h-32 p-3 border border-border rounded-lg bg-card resize-none focus:outline-none focus:ring-2 focus:ring-ring"
       />
     </div>
   )

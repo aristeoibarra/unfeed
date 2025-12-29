@@ -101,7 +101,7 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
       className={cn(
         "bg-[var(--muted)] rounded-xl p-4",
         "ring-1 ring-[var(--border)]",
-        isAudioMode && "ring-2 ring-blue-500/50 bg-blue-50 dark:bg-blue-950/30"
+        isAudioMode && "ring-2 ring-primary/50 bg-primary/5"
       )}
       role="region"
       aria-label="Audio mode controls"
@@ -112,8 +112,8 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
           <div className={cn(
             "p-2.5 rounded-xl transition-colors",
             isAudioMode
-              ? "bg-blue-600 text-white"
-              : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
+              ? "bg-primary text-primary-foreground"
+              : "bg-primary/10 text-primary"
           )}>
             <Volume2 className="w-5 h-5" aria-hidden="true" />
           </div>
@@ -136,7 +136,7 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
           variant={isAudioMode ? "default" : "secondary"}
           className={cn(
             "gap-2 min-w-[140px]",
-            isAudioMode && "bg-blue-600 hover:bg-blue-700"
+            isAudioMode && "bg-primary hover:bg-primary/90"
           )}
           aria-pressed={isAudioMode}
           aria-describedby="audio-mode-description"
@@ -170,7 +170,7 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
       {/* Error message - Clear feedback for users */}
       {error && (
         <div
-          className="mt-3 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 text-sm rounded-lg border border-red-200 dark:border-red-900"
+          className="mt-3 p-3 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/30"
           role="alert"
           aria-live="assertive"
         >
@@ -188,8 +188,8 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
         >
           <AudioDownloadStatus videoId={videoId} />
           {currentTime > 0 && (
-            <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" aria-hidden="true" />
+            <div className="text-xs text-primary flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" aria-hidden="true" />
               Playing from {formatTime(currentTime)}
             </div>
           )}

@@ -98,7 +98,7 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
   return (
     <Link
       href={`/watch/${entry.videoId}`}
-      className="flex gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg group"
+      className="flex gap-3 p-3 hover:bg-muted/50 rounded-lg group"
     >
       <div className="relative w-40 aspect-video flex-shrink-0">
         <Image
@@ -114,9 +114,9 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
           </div>
         )}
         {progressPercent > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300 dark:bg-gray-600">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
             <div
-              className={`h-full ${entry.completed ? "bg-green-500" : "bg-red-500"}`}
+              className={`h-full ${entry.completed ? "bg-success" : "bg-destructive"}`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -125,10 +125,10 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
 
       <div className="flex-1 min-w-0">
         <h3 className="font-medium line-clamp-2">{entry.title}</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {entry.channelName}
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground/70 mt-1">
           {formatWatchedAt(entry.watchedAt)}
           {entry.completed && " · Completed"}
         </p>
@@ -137,7 +137,7 @@ function HistoryItem({ entry, onRemove }: { entry: HistoryEntry; onRemove: (id: 
       <button
         onClick={handleRemove}
         disabled={removing}
-        className="p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity self-center"
+        className="p-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity self-center"
         aria-label="Remove from history"
       >
         <svg
@@ -160,7 +160,7 @@ function HistoryGroup({ title, entries, onRemove }: { title: string; entries: Hi
 
   return (
     <div className="space-y-1">
-      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-3 py-2">
+      <h3 className="text-sm font-semibold text-muted-foreground px-3 py-2">
         {title}
       </h3>
       {entries.map(entry => (
@@ -196,10 +196,10 @@ export function HistoryList({ initialEntries, initialHasMore, onLoadMore }: Hist
   if (entries.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 mb-2">
+        <p className="text-muted-foreground mb-2">
           No watch history yet.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground/70">
           Videos you watch will appear here.
         </p>
       </div>
@@ -221,7 +221,7 @@ export function HistoryList({ initialEntries, initialHasMore, onLoadMore }: Hist
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50"
+            className="px-6 py-2 bg-muted hover:bg-muted/80 rounded-lg disabled:opacity-50"
           >
             {loading ? "Loading..." : "Load more"}
           </button>

@@ -52,8 +52,8 @@ export function ProgressBar({
   // Blue for in-progress (neutral, calming), green for completed (positive)
   // Avoid red as it creates anxiety/urgency for TDA users
   const progressColor = completed
-    ? "bg-green-500 dark:bg-green-400"
-    : "bg-blue-500 dark:bg-blue-400"
+    ? "bg-success"
+    : "bg-primary"
 
   return (
     <div className={cn("w-full", className)}>
@@ -111,7 +111,7 @@ export function VideoCardProgress({
         aria-valuemax={100}
         aria-label="Completed"
       >
-        <div className="h-full bg-green-500 dark:bg-green-400 w-full" />
+        <div className="h-full bg-success w-full" />
       </div>
     )
   }
@@ -132,7 +132,7 @@ export function VideoCardProgress({
       aria-label={`${percentage}% watched`}
     >
       <div
-        className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300"
+        className="h-full bg-primary transition-all duration-300"
         style={{ width: `${percentage}%` }}
       />
     </div>
@@ -154,7 +154,7 @@ export function InlineProgress({
   if (completed) {
     return (
       <span
-        className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5 font-medium"
+        className="text-xs text-success flex items-center gap-1.5 font-medium"
         role="status"
       >
         <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -178,7 +178,7 @@ export function InlineProgress({
 
   return (
     <span
-      className="text-xs text-blue-600 dark:text-blue-400 font-medium"
+      className="text-xs text-primary font-medium"
       role="status"
     >
       Continue from {formattedTime} ({percentage}%)

@@ -91,7 +91,7 @@ export function LoginFormAction() {
             className={cn(
               "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8",
               "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
-              "focus-visible:ring-2 focus-visible:ring-blue-500"
+              "focus-visible:ring-2 focus-visible:ring-ring"
             )}
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             aria-pressed={showPassword}
@@ -109,7 +109,7 @@ export function LoginFormAction() {
       {state.error && (
         <div
           id={errorId}
-          className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 text-sm rounded-lg"
+          className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-lg"
           role="alert"
           aria-live="assertive"
         >

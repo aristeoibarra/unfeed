@@ -77,10 +77,10 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
   if (videos.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 mb-2">
+        <p className="text-muted-foreground mb-2">
           No videos in this playlist.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground/70">
           Add videos from the video player.
         </p>
       </div>
@@ -92,10 +92,10 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
       {videos.map((video, index) => (
         <div
           key={video.id}
-          className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50"
         >
           {/* Position */}
-          <span className="w-6 text-center text-sm text-gray-500">
+          <span className="w-6 text-center text-sm text-muted-foreground">
             {index + 1}
           </span>
 
@@ -117,10 +117,10 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
 
           {/* Info */}
           <Link href={`/watch/${video.videoId}`} className="flex-1 min-w-0">
-            <h3 className="font-medium line-clamp-1 hover:text-blue-600 dark:hover:text-blue-400">
+            <h3 className="font-medium line-clamp-1 hover:text-primary">
               {video.title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {video.channelName}
             </p>
           </Link>
@@ -130,7 +130,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
             <button
               onClick={() => handleMoveUp(video.videoId, index)}
               disabled={index === 0}
-              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Move up"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -140,7 +140,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
             <button
               onClick={() => handleMoveDown(video.videoId, index)}
               disabled={index === videos.length - 1}
-              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
               aria-label="Move down"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -153,7 +153,7 @@ export function PlaylistVideoList({ playlistId, initialVideos }: PlaylistVideoLi
           <button
             onClick={() => handleRemove(video.videoId)}
             disabled={removingId === video.videoId}
-            className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-50"
+            className="p-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
             aria-label="Remove from playlist"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

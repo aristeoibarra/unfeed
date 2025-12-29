@@ -60,8 +60,8 @@ export function LimitReachedModal() {
     <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-            <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-warning/10">
+            <AlertTriangle className="h-6 w-6 text-warning" />
           </div>
           <DialogTitle className="text-center">
             {limitType === "daily" ? "Daily" : "Weekly"} limit reached
@@ -74,7 +74,7 @@ export function LimitReachedModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
           <span>Taking breaks is important for focus and well-being</span>
         </div>
@@ -88,7 +88,7 @@ export function LimitReachedModal() {
           </Button>
           <button
             onClick={handleContinue}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 underline"
+            className="text-sm text-muted-foreground hover:text-foreground underline"
           >
             Continue anyway
           </button>

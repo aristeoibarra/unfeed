@@ -60,7 +60,7 @@ export function WatchedButton({ videoId, isWatched: initialWatched }: WatchedBut
           disabled={loading}
           variant={isWatched ? "default" : "secondary"}
           size="sm"
-          className={isWatched ? "bg-green-600 hover:bg-green-700" : ""}
+          className={isWatched ? "bg-success hover:bg-success/90" : ""}
           aria-label={isWatched ? "Mark as unwatched" : "Mark as watched"}
         >
           {loading ? (

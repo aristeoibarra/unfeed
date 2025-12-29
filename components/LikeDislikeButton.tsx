@@ -58,7 +58,7 @@ export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButto
   }
 
   return (
-    <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="flex rounded-lg overflow-hidden border border-border">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -67,8 +67,8 @@ export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButto
             variant="ghost"
             size="sm"
             className={cn(
-              "rounded-none border-r border-gray-200 dark:border-gray-700",
-              reaction === "like" && "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+              "rounded-none border-r border-border",
+              reaction === "like" && "bg-primary/10 text-primary"
             )}
             aria-label={reaction === "like" ? "Remove like" : "Like this video"}
             aria-pressed={reaction === "like"}
@@ -96,7 +96,7 @@ export function LikeDislikeButton({ videoId, initialReaction }: LikeDislikeButto
             size="sm"
             className={cn(
               "rounded-none",
-              reaction === "dislike" && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+              reaction === "dislike" && "bg-destructive/10 text-destructive"
             )}
             aria-label={reaction === "dislike" ? "Remove dislike" : "Dislike this video"}
             aria-pressed={reaction === "dislike"}

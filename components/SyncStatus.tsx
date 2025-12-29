@@ -52,30 +52,30 @@ interface SyncStatusProps {
 function getStatusIcon(status: string) {
   switch (status) {
     case "success":
-      return <Check className="h-4 w-4 text-green-500" />
+      return <Check className="h-4 w-4 text-success" />
     case "partial":
-      return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      return <AlertTriangle className="h-4 w-4 text-warning" />
     case "error":
-      return <AlertTriangle className="h-4 w-4 text-red-500" />
+      return <AlertTriangle className="h-4 w-4 text-destructive" />
     case "skipped":
-      return <SkipForward className="h-4 w-4 text-gray-400" />
+      return <SkipForward className="h-4 w-4 text-muted-foreground" />
     default:
-      return <Clock className="h-4 w-4 text-gray-400" />
+      return <Clock className="h-4 w-4 text-muted-foreground" />
   }
 }
 
 function getStatusColor(status: string) {
   switch (status) {
     case "success":
-      return "text-green-600 dark:text-green-400"
+      return "text-success"
     case "partial":
-      return "text-yellow-600 dark:text-yellow-400"
+      return "text-warning"
     case "error":
-      return "text-red-600 dark:text-red-400"
+      return "text-destructive"
     case "skipped":
-      return "text-gray-500 dark:text-gray-400"
+      return "text-muted-foreground"
     default:
-      return "text-gray-500 dark:text-gray-400"
+      return "text-muted-foreground"
   }
 }
 
@@ -119,61 +119,61 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-            <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="p-2 bg-info/10 rounded-lg">
+            <Clock className="h-4 w-4 text-info" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Last sync</p>
+            <p className="text-xs text-muted-foreground">Last sync</p>
             <p className="text-sm font-medium">{lastSyncText}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-            <RefreshCw className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+          <div className="p-2 bg-[#957FB8]/10 rounded-lg">
+            <RefreshCw className="h-4 w-4 text-[#957FB8]" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Next auto sync</p>
+            <p className="text-xs text-muted-foreground">Next auto sync</p>
             <p className="text-sm font-medium">{nextSyncText}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-            <Tv className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <div className="p-2 bg-success/10 rounded-lg">
+            <Tv className="h-4 w-4 text-success" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Channels</p>
+            <p className="text-xs text-muted-foreground">Channels</p>
             <p className="text-sm font-medium">
               {syncInfo.enabledChannelCount}/{syncInfo.channelCount}
-              <span className="text-xs text-gray-400 ml-1">syncing</span>
+              <span className="text-xs text-muted-foreground ml-1">syncing</span>
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-            <Database className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <div className="p-2 bg-warning/10 rounded-lg">
+            <Database className="h-4 w-4 text-warning" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Videos cached</p>
+            <p className="text-xs text-muted-foreground">Videos cached</p>
             <p className="text-sm font-medium">{syncInfo.totalVideos.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       {/* Quota estimate */}
-      <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+      <div className="p-3 bg-muted rounded-lg">
         <div className="flex items-center gap-2 mb-2">
-          <Zap className="h-4 w-4 text-yellow-500" />
+          <Zap className="h-4 w-4 text-warning" />
           <span className="text-sm font-medium">Estimated Daily API Usage</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-muted-foreground/20 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 syncInfo.quota.percentage > 80
-                  ? "bg-red-500"
+                  ? "bg-destructive"
                   : syncInfo.quota.percentage > 50
-                  ? "bg-yellow-500"
-                  : "bg-green-500"
+                  ? "bg-warning"
+                  : "bg-success"
               }`}
               style={{ width: `${Math.min(100, syncInfo.quota.percentage)}%` }}
             />
@@ -182,7 +182,7 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
             {syncInfo.quota.percentage}%
           </span>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           ~{syncInfo.quota.dailyUnitsEstimate.toLocaleString()} / {syncInfo.quota.dailyQuota.toLocaleString()} units
           ({syncInfo.quota.syncsPerDay}x/day)
         </p>
@@ -211,34 +211,34 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
       {/* Recent logs */}
       {logs.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <h4 className="text-sm font-medium text-muted-foreground">
             Recent Sync Logs
           </h4>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="flex items-center gap-2 text-sm p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
+                className="flex items-center gap-2 text-sm p-2 rounded-lg bg-muted"
               >
                 {getStatusIcon(log.status)}
-                <span className="text-gray-500 dark:text-gray-400 min-w-[80px]">
+                <span className="text-muted-foreground min-w-[80px]">
                   {format(new Date(log.createdAt), "MMM d, HH:mm")}
                 </span>
                 <span className={`capitalize ${getStatusColor(log.status)}`}>
                   {log.type}
                 </span>
                 {log.status !== "skipped" && (
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-muted-foreground">
                     {log.channelsSynced} ch, {log.newVideos} new
                   </span>
                 )}
                 {log.status === "skipped" && (
-                  <span className="text-gray-400 dark:text-gray-500 italic">
+                  <span className="text-muted-foreground italic">
                     Skipped (recent sync)
                   </span>
                 )}
                 {log.errors && log.status !== "skipped" && (
-                  <span className="text-red-500 text-xs">
+                  <span className="text-destructive text-xs">
                     ({JSON.parse(log.errors).length} errors)
                   </span>
                 )}

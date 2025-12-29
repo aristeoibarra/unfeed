@@ -93,11 +93,11 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
     <>
       <Link
         href={`/playlist/${playlist.id}`}
-        className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+        className="block p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
       >
         <div className="flex gap-4">
           {/* Thumbnail grid */}
-          <div className="w-32 h-20 flex-shrink-0 grid grid-cols-2 grid-rows-2 gap-0.5 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+          <div className="w-32 h-20 flex-shrink-0 grid grid-cols-2 grid-rows-2 gap-0.5 rounded overflow-hidden bg-muted">
             {playlist.previewThumbnails.slice(0, 4).map((thumb, i) => (
               <div key={i} className="relative w-full h-full">
                 <Image
@@ -110,7 +110,7 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
               </div>
             ))}
             {Array.from({ length: Math.max(0, 4 - playlist.previewThumbnails.length) }).map((_, i) => (
-              <div key={`empty-${i}`} className="w-full h-full bg-gray-300 dark:bg-gray-600" />
+              <div key={`empty-${i}`} className="w-full h-full bg-muted-foreground/20" />
             ))}
           </div>
 
@@ -122,19 +122,19 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                  className="flex-1 px-2 py-1 border border-border rounded bg-card"
                   autoFocus
                   onClick={e => e.preventDefault()}
                 />
                 <button
                   onClick={handleSave}
-                  className="px-2 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className="px-2 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
                 >
                   Save
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  className="px-2 py-1 text-sm bg-muted rounded hover:bg-muted/80"
                 >
                   Cancel
                 </button>
@@ -142,11 +142,11 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
             ) : (
               <h3 className="font-medium truncate">{playlist.name}</h3>
             )}
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {playlist.videoCount} {playlist.videoCount === 1 ? "video" : "videos"}
               {playlist.totalDuration > 0 && ` · ${formatDuration(playlist.totalDuration)}`}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground/70 mt-1">
               {formatTimeAgo(playlist.updatedAt)}
             </p>
           </div>
@@ -155,7 +155,7 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
           <div className="flex items-center gap-1">
             <button
               onClick={handleEdit}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="p-2 text-muted-foreground hover:text-foreground"
               aria-label="Edit playlist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -165,7 +165,7 @@ export function PlaylistCard({ playlist, onDelete, onUpdate }: PlaylistCardProps
             <button
               onClick={handleDeleteClick}
               disabled={deleting}
-              className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-50"
+              className="p-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
               aria-label="Delete playlist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">

@@ -5,7 +5,7 @@ interface WatchedBadgeProps {
 export function WatchedBadge({ className = "" }: WatchedBadgeProps) {
   return (
     <div
-      className={`absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 ${className}`}
+      className={`absolute top-2 right-2 bg-success text-success-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 ${className}`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

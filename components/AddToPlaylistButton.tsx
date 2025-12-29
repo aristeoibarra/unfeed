@@ -90,7 +90,7 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleOpen}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
         title="Add to playlist"
       >
         <svg
@@ -107,16 +107,16 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-lg shadow-lg z-20">
+          <div className="p-2 border-b border-border">
             <h3 className="font-medium text-sm">Add to playlist</h3>
           </div>
 
           <div className="max-h-60 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-500">Loading...</div>
+              <div className="p-4 text-center text-muted-foreground">Loading...</div>
             ) : playlists.length === 0 && !creating ? (
-              <div className="p-4 text-center text-gray-500 text-sm">
+              <div className="p-4 text-center text-muted-foreground text-sm">
                 No playlists yet
               </div>
             ) : (
@@ -125,10 +125,10 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
                   <button
                     key={playlist.id}
                     onClick={() => handleToggle(playlist.id)}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left hover:bg-muted flex items-center gap-2"
                   >
                     <div className={`w-4 h-4 border rounded flex items-center justify-center ${
-                      playlist.hasVideo ? "bg-blue-600 border-blue-600" : "border-gray-400"
+                      playlist.hasVideo ? "bg-primary border-primary" : "border-muted-foreground"
                     }`}>
                       {playlist.hasVideo && (
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-3 h-3">
@@ -143,7 +143,7 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
             )}
           </div>
 
-          <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-2 border-t border-border">
             {creating ? (
               <form onSubmit={handleCreate} className="flex gap-2">
                 <input
@@ -151,13 +151,13 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Playlist name..."
-                  className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                  className="flex-1 px-2 py-1 text-sm border border-border rounded bg-card"
                   autoFocus
                 />
                 <button
                   type="submit"
                   disabled={!newName.trim() || loading}
-                  className="px-2 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="px-2 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
                 >
                   Add
                 </button>
@@ -165,7 +165,7 @@ export function AddToPlaylistButton({ video }: AddToPlaylistButtonProps) {
             ) : (
               <button
                 onClick={() => setCreating(true)}
-                className="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded flex items-center gap-2"
+                className="w-full px-3 py-2 text-left text-sm text-primary hover:bg-muted rounded flex items-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

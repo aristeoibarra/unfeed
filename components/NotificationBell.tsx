@@ -64,11 +64,11 @@ function NotificationItem({
     <Link
       href={`/watch/${notification.videoId}`}
       onClick={onClick}
-      className={`flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-        !notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
+      className={`flex gap-3 px-4 py-3 hover:bg-muted transition-colors ${
+        !notification.isRead ? "bg-primary/10" : ""
       }`}
     >
-      <div className="relative flex-shrink-0 w-24 h-14 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+      <div className="relative flex-shrink-0 w-24 h-14 rounded overflow-hidden bg-muted">
         <Image
           src={notification.thumbnail}
           alt=""
@@ -84,12 +84,12 @@ function NotificationItem({
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium line-clamp-2">{notification.title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {notification.channelName} &middot; {getTimeAgo(new Date(notification.createdAt))}
         </p>
       </div>
       {!notification.isRead && (
-        <div className="flex-shrink-0 w-2 h-2 mt-2 bg-blue-500 rounded-full" />
+        <div className="flex-shrink-0 w-2 h-2 mt-2 bg-primary rounded-full" />
       )}
     </Link>
   )
@@ -110,12 +110,12 @@ function NotificationList({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="font-semibold">Notifications</span>
         {count > 0 && (
           <button
             onClick={onMarkAllRead}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             Mark all read
           </button>
@@ -123,7 +123,7 @@ function NotificationList({
       </div>
       <ScrollArea className="max-h-80">
         {notifications.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500">
+          <div className="px-4 py-8 text-center text-muted-foreground">
             No notifications yet
           </div>
         ) : (
@@ -142,7 +142,7 @@ function NotificationList({
       <Link
         href="/notifications"
         onClick={onClose}
-        className="block px-4 py-3 text-center text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+        className="block px-4 py-3 text-center text-sm text-primary hover:bg-muted border-t border-border"
       >
         View all notifications
       </Link>
@@ -195,7 +195,7 @@ export function NotificationBell({ initialCount, initialNotifications }: Notific
     >
       <Bell className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
+        <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-destructive-foreground bg-destructive rounded-full">
           {count > 99 ? "99+" : count}
         </span>
       )}

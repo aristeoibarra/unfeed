@@ -75,9 +75,9 @@ export function SubscriptionList({ subscriptions }: SubscriptionListProps) {
           <li key={sub.id}>
             <div
               className={cn(
-                "p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800",
+                "p-4 bg-muted/50 rounded-xl border border-border",
                 "flex items-center justify-between gap-4",
-                "transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/50",
+                "transition-colors hover:bg-muted",
                 deletingId === sub.id && "opacity-50 pointer-events-none"
               )}
             >
@@ -94,14 +94,14 @@ export function SubscriptionList({ subscriptions }: SubscriptionListProps) {
                     className="rounded-full flex-shrink-0 object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full flex-shrink-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  <div className="w-10 h-10 rounded-full flex-shrink-0 bg-muted flex items-center justify-center">
+                    <Users className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   </div>
                 )}
-                <span className="font-medium truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <span className="font-medium truncate group-hover:text-primary transition-colors">
                   {sub.name}
                 </span>
-                <ExternalLink className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" aria-hidden="true" />
+                <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" aria-hidden="true" />
               </Link>
 
               <Button
@@ -109,7 +109,7 @@ export function SubscriptionList({ subscriptions }: SubscriptionListProps) {
                 size="icon"
                 onClick={() => setConfirmDelete(sub)}
                 disabled={deletingId === sub.id}
-                className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 aria-label={`Remove ${sub.name} from subscriptions`}
               >
                 {deletingId === sub.id ? (

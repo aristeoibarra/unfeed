@@ -166,7 +166,7 @@ export function VideoPlayer({
               <div className="w-12 h-12 rounded-full bg-primary/10 animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
+                  className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"
                   aria-hidden="true"
                 />
               </div>
@@ -190,7 +190,7 @@ export function VideoPlayer({
           {/* Channel link - Secondary importance */}
           <Link
             href={`/subscription/${video.channelId}`}
-            className="group inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-md px-1 -mx-1"
+            className="group inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-1 -mx-1"
           >
             <span className="font-medium">{video.channelName}</span>
             <ExternalLink

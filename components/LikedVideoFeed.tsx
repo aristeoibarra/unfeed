@@ -46,10 +46,10 @@ export function LikedVideoFeed({
   if (videos.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 mb-2">
+        <p className="text-muted-foreground mb-2">
           No liked videos yet.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground/70">
           Watch some videos and hit the Like button to see them here.
         </p>
       </div>
@@ -80,7 +80,7 @@ export function LikedVideoFeed({
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="px-6 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50"
+            className="px-6 py-2 bg-muted hover:bg-muted/80 rounded-lg disabled:opacity-50"
           >
             {loading ? "Loading..." : "Load more"}
           </button>

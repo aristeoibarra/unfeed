@@ -37,11 +37,11 @@ export function MiniPlayer() {
   return (
     <>
       {/* Fixed mini player at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg">
         {/* Progress bar */}
-        <div className="h-1 bg-gray-800">
+        <div className="h-1 bg-muted">
           <div
-            className="h-full bg-blue-500 transition-all duration-100"
+            className="h-full bg-primary transition-all duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -66,17 +66,17 @@ export function MiniPlayer() {
             <div className="flex-1 min-w-0">
               <Link
                 href={`/watch/${currentVideo.videoId}`}
-                className="font-medium text-sm text-white line-clamp-1 hover:text-blue-400"
+                className="font-medium text-sm text-foreground line-clamp-1 hover:text-primary"
               >
                 {currentVideo.title}
               </Link>
-              <p className="text-xs text-gray-400 line-clamp-1">
+              <p className="text-xs text-muted-foreground line-clamp-1">
                 {currentVideo.channelName}
               </p>
             </div>
 
             {/* Time */}
-            <div className="hidden sm:block text-xs text-gray-400">
+            <div className="hidden sm:block text-xs text-muted-foreground">
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
 
@@ -90,7 +90,7 @@ export function MiniPlayer() {
               {/* Play/Pause */}
               <button
                 onClick={isPlaying ? pause : resume}
-                className="p-2 text-white hover:text-blue-400 transition-colors"
+                className="p-2 text-foreground hover:text-primary transition-colors"
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
@@ -107,7 +107,7 @@ export function MiniPlayer() {
               {/* Close */}
               <button
                 onClick={stop}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close player"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

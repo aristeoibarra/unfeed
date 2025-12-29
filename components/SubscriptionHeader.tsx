@@ -12,7 +12,7 @@ interface SubscriptionHeaderProps {
 
 export function SubscriptionHeader({ subscription, videoCount }: SubscriptionHeaderProps) {
   return (
-    <div className="flex items-center gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
+    <div className="flex items-center gap-4 pb-6 border-b border-border">
       {subscription.thumbnail && (
         <Image
           src={subscription.thumbnail}
@@ -25,7 +25,7 @@ export function SubscriptionHeader({ subscription, videoCount }: SubscriptionHea
       <div className="flex-1">
         <h1 className="text-2xl font-bold">{subscription.name}</h1>
         {videoCount !== undefined && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {videoCount} video{videoCount !== 1 ? "s" : ""} cached
           </p>
         )}

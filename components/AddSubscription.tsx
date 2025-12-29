@@ -74,7 +74,7 @@ export function AddSubscription() {
             className="pr-10"
           />
           {url && !loading && !error && (
-            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" aria-hidden="true" />
+            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" aria-hidden="true" />
           )}
         </div>
         <Button
@@ -101,7 +101,7 @@ export function AddSubscription() {
         <div
           id="url-error"
           role="alert"
-          className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+          className="flex items-center gap-2 text-sm text-destructive"
         >
           <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span>{error}</span>
@@ -112,7 +112,7 @@ export function AddSubscription() {
       <p
         id="url-hint"
         className={cn(
-          "text-xs text-gray-500 dark:text-gray-400",
+          "text-xs text-muted-foreground",
           error && "sr-only"
         )}
       >

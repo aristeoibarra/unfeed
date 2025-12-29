@@ -95,7 +95,7 @@ export function VideoCard({
   return (
     <Link
       href={`/watch/${videoId}`}
-      className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-xl"
+      className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
       aria-label={`Watch ${title} by ${channelName}, published ${timeAgo}${isWatched ? ", already watched" : ""}${completed ? ", completed" : hasProgress ? `, ${Math.round(((progress || 0) / (duration || 1)) * 100)}% watched` : ""}`}
     >
       <article className="space-y-3">
@@ -140,7 +140,7 @@ export function VideoCard({
             {hasNote && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="p-1.5 bg-yellow-500 text-white rounded-lg shadow-sm">
+                  <div className="p-1.5 bg-warning text-warning-foreground rounded-lg shadow-sm">
                     <StickyNote className="h-3.5 w-3.5" aria-hidden="true" />
                     <span className="sr-only">Has notes</span>
                   </div>
@@ -154,7 +154,7 @@ export function VideoCard({
           {reaction === "like" && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="absolute top-2 right-2 p-1.5 bg-blue-600 text-white rounded-lg shadow-sm">
+                <div className="absolute top-2 right-2 p-1.5 bg-primary text-primary-foreground rounded-lg shadow-sm">
                   <ThumbsUp className="h-3.5 w-3.5" aria-hidden="true" />
                   <span className="sr-only">Liked</span>
                 </div>
@@ -184,7 +184,7 @@ export function VideoCard({
 
         {/* Video info - Clear hierarchy for TDA users */}
         <div className="space-y-1.5 px-1">
-          <h3 className="font-medium leading-snug line-clamp-2 text-[var(--foreground)] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <h3 className="font-medium leading-snug line-clamp-2 text-[var(--foreground)] group-hover:text-primary transition-colors">
             {title}
           </h3>
           <p className="text-sm text-[var(--muted-foreground)] truncate">
@@ -196,7 +196,7 @@ export function VideoCard({
             {hasProgress && !completed && progress && duration && (
               <>
                 <span aria-hidden="true" className="text-[var(--border)]">|</span>
-                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                <span className="text-primary font-medium">
                   Continue from {formatProgressTime(progress)}
                 </span>
               </>

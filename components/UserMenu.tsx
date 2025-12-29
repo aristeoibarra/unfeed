@@ -29,7 +29,7 @@ interface UserMenuProps {
 function UserAvatar({ initial }: { initial: string }) {
   return (
     <Avatar className="h-11 w-11 cursor-pointer">
-      <AvatarFallback className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-medium text-base transition-colors duration-150">
+      <AvatarFallback className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-base transition-colors duration-150">
         {initial}
       </AvatarFallback>
     </Avatar>
@@ -61,7 +61,7 @@ export function UserMenu({ email }: UserMenuProps) {
     <Button
       variant="ghost"
       size="icon"
-      className="h-11 w-11 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:ring-offset-2 transition-transform duration-150 hover:scale-105 active:scale-95"
+      className="h-11 w-11 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 transition-transform duration-150 hover:scale-105 active:scale-95"
       aria-label={`User menu for ${email}`}
     >
       <UserAvatar initial={initial} />
@@ -70,7 +70,7 @@ export function UserMenu({ email }: UserMenuProps) {
 
   const menuContent = (
     <>
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
         <UserAvatar initial={initial} />
         <div className="flex flex-col min-w-0">
           <p className="text-sm font-medium">My account</p>
@@ -80,7 +80,7 @@ export function UserMenu({ email }: UserMenuProps) {
       <button
         onClick={handleLogout}
         disabled={isLoading}
-        className="flex items-center gap-3 w-full px-4 py-4 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50"
+        className="flex items-center gap-3 w-full px-4 py-4 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
       >
         <LogOut className="h-5 w-5" aria-hidden="true" />
         <span className="font-medium">
@@ -113,7 +113,7 @@ export function UserMenu({ email }: UserMenuProps) {
           <DropdownMenuItem
             onClick={handleLogout}
             disabled={isLoading}
-            className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-950/30 cursor-pointer py-2.5"
+            className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer py-2.5"
           >
             <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
             <span>{isLoading ? "Logging out..." : "Log out"}</span>

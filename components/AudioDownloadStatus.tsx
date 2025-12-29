@@ -74,26 +74,26 @@ export function AudioDownloadStatus({
       icon: Download,
       label: "Preparing download...",
       shortLabel: "",
-      color: "text-yellow-500",
+      color: "text-warning",
     },
     downloading: {
       icon: Loader2,
       label: "Downloading to cache...",
       shortLabel: "Caching...",
-      color: "text-blue-500",
+      color: "text-info",
       animate: true,
     },
     ready: {
       icon: Check,
       label: "Cached locally for instant playback",
       shortLabel: "Cached",
-      color: "text-green-500",
+      color: "text-success",
     },
     error: {
       icon: AlertCircle,
       label: error || "Download failed",
       shortLabel: "Error",
-      color: "text-red-500",
+      color: "text-destructive",
     },
   }
 

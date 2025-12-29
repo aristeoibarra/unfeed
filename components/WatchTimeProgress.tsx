@@ -42,25 +42,25 @@ export function WatchTimeProgress({ className, showLabel = true }: WatchTimeProg
 
   return (
     <div className={cn("flex items-center gap-3 text-sm", className)}>
-      <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
+      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" aria-hidden="true" />
 
       <div className="flex items-center gap-4">
         {/* Daily progress */}
         {hasDaily && (
           <div className="flex items-center gap-2">
             {showLabel && (
-              <span className="text-gray-500 dark:text-gray-400 text-xs">Today:</span>
+              <span className="text-muted-foreground text-xs">Today:</span>
             )}
             <div className="flex items-center gap-1.5">
-              <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-300",
                     isDailyExceeded
-                      ? "bg-red-500"
+                      ? "bg-destructive"
                       : isDailyWarning
-                        ? "bg-orange-500"
-                        : "bg-green-500"
+                        ? "bg-warning"
+                        : "bg-success"
                   )}
                   style={{ width: `${Math.min(100, dailyPercentage || 0)}%` }}
                 />
@@ -69,10 +69,10 @@ export function WatchTimeProgress({ className, showLabel = true }: WatchTimeProg
                 className={cn(
                   "text-xs font-medium tabular-nums",
                   isDailyExceeded
-                    ? "text-red-500"
+                    ? "text-destructive"
                     : isDailyWarning
-                      ? "text-orange-500"
-                      : "text-gray-600 dark:text-gray-300"
+                      ? "text-warning"
+                      : "text-foreground"
                 )}
               >
                 {formatMinutes(dailyMinutes)}/{formatMinutes(dailyLimit)}
@@ -85,18 +85,18 @@ export function WatchTimeProgress({ className, showLabel = true }: WatchTimeProg
         {hasWeekly && (
           <div className="flex items-center gap-2">
             {showLabel && (
-              <span className="text-gray-500 dark:text-gray-400 text-xs">Week:</span>
+              <span className="text-muted-foreground text-xs">Week:</span>
             )}
             <div className="flex items-center gap-1.5">
-              <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-300",
                     isWeeklyExceeded
-                      ? "bg-red-500"
+                      ? "bg-destructive"
                       : isWeeklyWarning
-                        ? "bg-orange-500"
-                        : "bg-blue-500"
+                        ? "bg-warning"
+                        : "bg-primary"
                   )}
                   style={{ width: `${Math.min(100, weeklyPercentage || 0)}%` }}
                 />
@@ -105,10 +105,10 @@ export function WatchTimeProgress({ className, showLabel = true }: WatchTimeProg
                 className={cn(
                   "text-xs font-medium tabular-nums",
                   isWeeklyExceeded
-                    ? "text-red-500"
+                    ? "text-destructive"
                     : isWeeklyWarning
-                      ? "text-orange-500"
-                      : "text-gray-600 dark:text-gray-300"
+                      ? "text-warning"
+                      : "text-foreground"
                 )}
               >
                 {formatMinutes(weeklyMinutes)}/{formatMinutes(weeklyLimit)}

@@ -82,21 +82,21 @@ export function LanguageSettings({
       {/* Language selector */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-            <Languages className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Languages className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
             <p className="font-medium">Player language</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               YouTube interface and subtitle preference
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {loadingLanguage && (
-            <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden="true" />
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
           )}
-          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+          <div className="flex rounded-lg border border-border p-1">
             {languages.map((lang) => (
               <Button
                 key={lang.code}
@@ -107,8 +107,8 @@ export function LanguageSettings({
                 className={cn(
                   "px-3 py-1 h-8 rounded-md transition-colors",
                   language === lang.code
-                    ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-primary/20 text-primary"
+                    : "hover:bg-muted"
                 )}
                 aria-pressed={language === lang.code}
               >
@@ -122,21 +122,21 @@ export function LanguageSettings({
       {/* Subtitles toggle */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-            <Captions className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+          <div className="p-2 bg-success/10 rounded-lg">
+            <Captions className="h-5 w-5 text-success" aria-hidden="true" />
           </div>
           <div>
             <label htmlFor="auto-subtitles" className="font-medium cursor-pointer">
               Show subtitles automatically
             </label>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Display subtitles when starting a video
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {loadingSubtitles && (
-            <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden="true" />
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
           )}
           <Switch
             id="auto-subtitles"

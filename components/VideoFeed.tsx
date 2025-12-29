@@ -114,7 +114,7 @@ export function VideoFeed({
               </>
             )}
           </Button>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Showing {videos.length} videos
           </p>
         </div>

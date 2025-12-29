@@ -228,8 +228,8 @@ export function Player({
         aria-live="polite"
       >
         <div className="text-center space-y-4 p-6">
-          <div className="w-12 h-12 mx-auto rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
-            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" aria-hidden="true" />
+          <div className="w-12 h-12 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-destructive" aria-hidden="true" />
           </div>
           <div className="space-y-1">
             <p className="text-[var(--foreground)] font-medium">Failed to load video</p>
@@ -285,7 +285,7 @@ export function Player({
             <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
+                className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
                 aria-hidden="true"
               />
             </div>
