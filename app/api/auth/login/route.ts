@@ -1,20 +1,45 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { createToken, setSessionCookie } from "@/lib/auth"
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
+import { prisma } from "@/lib/db"
+
+// Rate limit: 5 attempts per 15 minutes
+const LOGIN_RATE_LIMIT = {
+  limit: 5,
+  windowSeconds: 15 * 60,
+}
 
 /**
  * POST /api/auth/login
  *
- * Authenticates user against credentials stored in environment variables.
+ * Authenticates user against credentials stored in database.
  * On success, creates a JWT token and sets it as an httpOnly cookie.
  *
  * Security measures:
  * - Uses bcrypt to compare password against stored hash
  * - Same error message for invalid email or password (prevents enumeration)
- * - Rate limiting should be added at infrastructure level (e.g., Vercel, Cloudflare)
+ * - Rate limiting: 5 attempts per 15 minutes per IP
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    // Check rate limit
+    const clientIP = getClientIP(request)
+    const rateLimit = checkRateLimit(`login:${clientIP}`, LOGIN_RATE_LIMIT)
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Demasiados intentos. Intenta de nuevo en ${Math.ceil(rateLimit.resetIn / 60)} minutos.` },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.resetIn),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(rateLimit.resetIn),
+          }
+        }
+      )
+    }
     const body = await request.json()
     const { email, password } = body as { email?: string; password?: string }
 
@@ -26,7 +51,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       )
     }
 
-    // Validate email format
+    // Validate data types
     if (typeof email !== "string" || typeof password !== "string") {
       return NextResponse.json(
         { error: "Formato de datos invalido" },
@@ -34,20 +59,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       )
     }
 
-    // Get credentials from environment
-    const authEmail = process.env.AUTH_EMAIL
-    const authPasswordHash = process.env.AUTH_PASSWORD_HASH
+    // Find user in database
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    })
 
-    if (!authEmail || !authPasswordHash) {
-      console.error("AUTH_EMAIL or AUTH_PASSWORD_HASH not configured")
-      return NextResponse.json(
-        { error: "Error de configuracion del servidor" },
-        { status: 500 }
-      )
-    }
-
-    // Verify email (case-insensitive comparison)
-    if (email.toLowerCase() !== authEmail.toLowerCase()) {
+    if (!user) {
       return NextResponse.json(
         { error: "Credenciales invalidas" },
         { status: 401 }
@@ -55,7 +72,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Verify password against bcrypt hash
-    const passwordMatch = await bcrypt.compare(password, authPasswordHash)
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash)
 
     if (!passwordMatch) {
       return NextResponse.json(
@@ -65,7 +82,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Create JWT token and set cookie
-    const token = await createToken(email)
+    const token = await createToken(user.email)
     await setSessionCookie(token)
 
     return NextResponse.json({ success: true })

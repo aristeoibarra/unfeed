@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs"
 import { SignJWT } from "jose"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import { prisma } from "@/lib/db"
 
 const COOKIE_NAME = "auth_token"
-const SESSION_DAYS = 7
+const SESSION_DAYS = parseInt(process.env.AUTH_SESSION_DAYS || "7", 10)
 
 function getSecret(): Uint8Array {
   const secret = process.env.AUTH_SECRET
@@ -32,21 +33,18 @@ export async function loginAction(
     return { error: "Email y contraseña requeridos" }
   }
 
-  const authEmail = process.env.AUTH_EMAIL
-  const authPasswordHash = process.env.AUTH_PASSWORD_HASH
+  // Find user in database
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  })
 
-  if (!authEmail || !authPasswordHash) {
-    return { error: "Error de configuración del servidor" }
-  }
-
-  // Verify email
-  if (email.toLowerCase() !== authEmail.toLowerCase()) {
+  if (!user) {
     return { error: "Credenciales inválidas" }
   }
 
   // Verify password
   try {
-    const passwordMatch = await bcrypt.compare(password, authPasswordHash)
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash)
 
     if (!passwordMatch) {
       return { error: "Credenciales inválidas" }
@@ -57,7 +55,7 @@ export async function loginAction(
 
   // Create JWT token
   const secret = getSecret()
-  const token = await new SignJWT({ email })
+  const token = await new SignJWT({ email: user.email })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)

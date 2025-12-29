@@ -41,6 +41,21 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://i.ytimg.com https://yt3.ggpht.com https://yt3.googleusercontent.com",
+              "font-src 'self'",
+              "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+              "connect-src 'self' https://www.googleapis.com",
+              "media-src 'self' blob:",
+              "worker-src 'self' blob:",
+              "manifest-src 'self'",
+            ].join("; "),
+          },
         ],
       },
     ];

@@ -3,7 +3,7 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
 import path from "path"
 
 // Use absolute path to ensure database is found during build
-const dbPath = path.join(process.cwd(), "dev.db")
+const dbPath = path.join(process.cwd(), "prod.db")
 
 const adapter = new PrismaBetterSqlite3({
   url: `file:${dbPath}`
