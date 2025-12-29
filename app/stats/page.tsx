@@ -7,7 +7,11 @@ import {
   CheckCircle2,
   Flame,
   Moon,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  Target,
+  Zap,
+  RefreshCw
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -27,10 +31,75 @@ function formatTime(minutes: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+function formatTimeDetailed(minutes: number): { value: string; unit: string } {
+  if (minutes < 60) {
+    return { value: String(minutes), unit: "min" }
+  }
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (mins === 0) {
+    return { value: String(hours), unit: hours === 1 ? "hour" : "hours" }
+  }
+  return { value: `${hours}h ${mins}`, unit: "min" }
+}
+
 function formatHour(hour: number): string {
   const suffix = hour >= 12 ? "pm" : "am"
   const displayHour = hour % 12 || 12
   return `${displayHour}${suffix}`
+}
+
+// Circular progress component
+function CircularProgress({
+  value,
+  max,
+  size = 120,
+  strokeWidth = 8,
+  color = "var(--primary)"
+}: {
+  value: number
+  max: number
+  size?: number
+  strokeWidth?: number
+  color?: string
+}) {
+  const percentage = max > 0 ? Math.min(100, (value / max) * 100) : 0
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (percentage / 100) * circumference
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-muted/20"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-2xl font-bold">{Math.round(percentage)}%</span>
+      </div>
+    </div>
+  )
 }
 
 export default async function StatsPage() {
@@ -46,130 +115,173 @@ export default async function StatsPage() {
 
   // Calculate max channel time for progress bars
   const maxChannelMinutes = stats.topChannels[0]?.minutes || 1
+  const totalChannelMinutes = stats.topChannels.reduce((sum, c) => sum + c.minutes, 0)
+
+  // Get color based on percentage
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 100) return "hsl(var(--destructive))"
+    if (percentage >= 80) return "hsl(var(--warning))"
+    return "hsl(var(--success))"
+  }
 
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-chart-4/20 rounded-xl">
-            <BarChart3
-              className="h-6 w-6 text-chart-4"
-              aria-hidden="true"
-            />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Stats</h1>
-            <p className="text-muted-foreground text-sm">
-              Your watch time analytics
-            </p>
-          </div>
+      <header className="flex items-center gap-4">
+        <div className="p-3 bg-primary/10 rounded-xl">
+          <BarChart3 className="h-6 w-6 text-primary" aria-hidden="true" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Stats</h1>
+          <p className="text-muted-foreground text-sm">
+            Your watch time analytics
+          </p>
         </div>
       </header>
 
-      {/* Weekly Overview */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Clock className="h-5 w-5 text-info" />
-            This Week
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-baseline justify-between">
-              <span className="text-3xl font-bold">
-                {formatTime(stats.weeklyMinutes)}
-              </span>
-              {stats.weeklyLimit && (
-                <span className="text-muted-foreground">
-                  / {formatTime(stats.weeklyLimit)} limit
-                </span>
-              )}
-            </div>
-            {weeklyPercentage !== null && (
-              <Progress
-                value={weeklyPercentage}
-                className={`h-3 ${
-                  weeklyPercentage >= 100
-                    ? "[&>div]:bg-destructive"
-                    : weeklyPercentage >= 80
-                      ? "[&>div]:bg-warning"
-                      : "[&>div]:bg-success"
-                }`}
+      {/* Hero Section - Weekly Overview with Circular Progress */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Circular Progress */}
+            {stats.weeklyLimit ? (
+              <CircularProgress
+                value={stats.weeklyMinutes}
+                max={stats.weeklyLimit}
+                size={140}
+                strokeWidth={12}
+                color={getProgressColor(weeklyPercentage || 0)}
               />
+            ) : (
+              <div className="w-[140px] h-[140px] rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <Clock className="h-12 w-12 text-primary/60" />
+              </div>
             )}
+
+            {/* Stats Content */}
+            <div className="flex-1 text-center sm:text-left space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground uppercase tracking-wide font-medium">
+                  This Week
+                </p>
+                <div className="flex items-baseline gap-2 justify-center sm:justify-start">
+                  <span className="text-4xl sm:text-5xl font-bold tracking-tight">
+                    {formatTime(stats.weeklyMinutes)}
+                  </span>
+                  {stats.weeklyLimit && (
+                    <span className="text-muted-foreground">
+                      / {formatTime(stats.weeklyLimit)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick stats row */}
+              <div className="flex gap-6 justify-center sm:justify-start">
+                <div>
+                  <p className="text-2xl font-semibold">{stats.videosWeek}</p>
+                  <p className="text-xs text-muted-foreground">videos</p>
+                </div>
+                <div className="w-px bg-border" />
+                <div>
+                  <p className="text-2xl font-semibold">{stats.completionRate.rate}%</p>
+                  <p className="text-xs text-muted-foreground">completed</p>
+                </div>
+                <div className="w-px bg-border" />
+                <div>
+                  <p className="text-2xl font-semibold">{formatTime(stats.dailyAverage)}</p>
+                  <p className="text-xs text-muted-foreground">daily avg</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Time & Video Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">
-                Today
-              </span>
-              <span className="text-2xl font-bold">
-                {formatTime(stats.dailyMinutes)}
-              </span>
-              {dailyPercentage !== null && (
+      {/* Today's Progress */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="sm:col-span-2">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="font-medium">Today</span>
+              </div>
+              <span className="text-2xl font-bold">{formatTime(stats.dailyMinutes)}</span>
+            </div>
+            {stats.dailyLimit ? (
+              <div className="space-y-2">
                 <Progress
-                  value={dailyPercentage}
-                  className={`h-1.5 mt-1 ${
-                    dailyPercentage >= 100
+                  value={dailyPercentage || 0}
+                  className={`h-2 ${
+                    (dailyPercentage || 0) >= 100
                       ? "[&>div]:bg-destructive"
-                      : dailyPercentage >= 80
+                      : (dailyPercentage || 0) >= 80
                         ? "[&>div]:bg-warning"
-                        : "[&>div]:bg-primary"
+                        : "[&>div]:bg-success"
                   }`}
                 />
-              )}
-            </div>
+                <p className="text-xs text-muted-foreground text-right">
+                  {formatTime(stats.dailyLimit)} daily limit
+                </p>
+              </div>
+            ) : (
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary/60 rounded-full"
+                  style={{ width: `${Math.min(100, (stats.dailyMinutes / 120) * 100)}%` }}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">
-                Daily Average
-              </span>
-              <span className="text-2xl font-bold">
-                {formatTime(stats.dailyAverage)}
-              </span>
+          <CardContent className="p-5 flex flex-col justify-center h-full">
+            <div className="flex items-center gap-2 mb-1">
+              <PlayCircle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Videos today</span>
             </div>
+            <span className="text-3xl font-bold">{stats.videosToday}</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Patterns Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {/* Watch Streak */}
+        <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
+          <CardContent className="p-4 text-center">
+            <Flame className="h-8 w-8 text-warning mx-auto mb-2" />
+            <p className="text-3xl font-bold">{stats.watchStreak}</p>
+            <p className="text-xs text-muted-foreground">day streak</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <PlayCircle className="h-4 w-4" />
-                Videos
-              </span>
-              <span className="text-2xl font-bold">{stats.videosWeek}</span>
-              <span className="text-xs text-muted-foreground">this week</span>
-            </div>
+        {/* Sessions per Day */}
+        <Card className="bg-gradient-to-br from-info/10 to-info/5 border-info/20">
+          <CardContent className="p-4 text-center">
+            <Zap className="h-8 w-8 text-info mx-auto mb-2" />
+            <p className="text-3xl font-bold">{stats.sessionsPerDay}</p>
+            <p className="text-xs text-muted-foreground">sessions/day</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4" />
-                Completed
-              </span>
-              <span className="text-2xl font-bold">
-                {stats.completionRate.completed}
-                <span className="text-base font-normal text-muted-foreground ml-1">
-                  ({stats.completionRate.rate}%)
-                </span>
-              </span>
-            </div>
+        {/* Avg Session */}
+        <Card className="bg-gradient-to-br from-success/10 to-success/5 border-success/20">
+          <CardContent className="p-4 text-center">
+            <Clock className="h-8 w-8 text-success mx-auto mb-2" />
+            <p className="text-3xl font-bold">{formatTime(stats.avgSessionDuration)}</p>
+            <p className="text-xs text-muted-foreground">avg session</p>
+          </CardContent>
+        </Card>
+
+        {/* Monthly Total */}
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <CardContent className="p-4 text-center">
+            <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
+            <p className="text-3xl font-bold">{formatTime(stats.monthlyMinutes)}</p>
+            <p className="text-xs text-muted-foreground">this month</p>
           </CardContent>
         </Card>
       </div>
@@ -177,158 +289,168 @@ export default async function StatsPage() {
       {/* Top Channels */}
       {stats.topChannels.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-success" />
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-success" />
               Top Channels
-              <span className="text-sm font-normal text-muted-foreground">
+              <span className="text-xs font-normal text-muted-foreground ml-auto">
                 this week
               </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.topChannels.map((channel, index) => (
-                <div key={channel.channelId} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground w-4">
-                        {index + 1}.
-                      </span>
-                      <Link
-                        href={`/subscription/${channel.channelId}`}
-                        className="text-sm font-medium hover:text-primary transition-colors"
-                      >
-                        {channel.channelName}
-                      </Link>
-                    </div>
-                    <span className="text-sm text-muted-foreground tabular-nums">
-                      {formatTime(channel.minutes)}
-                    </span>
+          <CardContent className="space-y-3">
+            {stats.topChannels.map((channel, index) => {
+              const percentage = totalChannelMinutes > 0
+                ? Math.round((channel.minutes / totalChannelMinutes) * 100)
+                : 0
+              return (
+                <Link
+                  key={channel.channelId}
+                  href={`/subscription/${channel.channelId}`}
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                >
+                  {/* Rank badge */}
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    index === 0 ? "bg-warning/20 text-warning" :
+                    index === 1 ? "bg-muted text-muted-foreground" :
+                    index === 2 ? "bg-warning/10 text-warning/70" :
+                    "bg-muted/50 text-muted-foreground"
+                  }`}>
+                    {index + 1}
                   </div>
-                  <Progress
-                    value={(channel.minutes / maxChannelMinutes) * 100}
-                    className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-chart-4"
-                  />
-                </div>
-              ))}
-            </div>
+
+                  {/* Channel info with inline progress */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                        {channel.channelName}
+                      </span>
+                      <span className="text-sm text-muted-foreground tabular-nums ml-2">
+                        {formatTime(channel.minutes)}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all"
+                        style={{ width: `${(channel.minutes / maxChannelMinutes) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Percentage */}
+                  <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">
+                    {percentage}%
+                  </span>
+                </Link>
+              )
+            })}
           </CardContent>
         </Card>
       )}
 
-      {/* Patterns (TDA) */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium">Patterns</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Watch Streak */}
-            <div className="flex items-center gap-3 p-3 bg-warning/10 rounded-lg">
-              <Flame className="h-5 w-5 text-warning" />
-              <div>
-                <span className="font-medium">
-                  {stats.watchStreak} day streak
-                </span>
-                <p className="text-sm text-muted-foreground">
-                  {stats.watchStreak > 0
-                    ? "Keep it going!"
-                    : "Start watching to build a streak"}
-                </p>
-              </div>
-            </div>
-
-            {/* Most Active Time */}
-            {stats.mostActiveHour && (
-              <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
-                <div className="h-3 w-3 rounded-full bg-success" />
-                <div>
-                  <span className="font-medium">
-                    Most active: {formatHour(stats.mostActiveHour.hour)} -{" "}
-                    {formatHour((stats.mostActiveHour.hour + 2) % 24)}
-                  </span>
-                  <p className="text-sm text-muted-foreground">
-                    {stats.mostActiveHour.hour >= 6 &&
-                    stats.mostActiveHour.hour < 22
+      {/* Activity Insights */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Most Active Time */}
+        {stats.mostActiveHour && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <Clock className="h-5 w-5 text-success" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Peak Activity</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {formatHour(stats.mostActiveHour.hour)} - {formatHour((stats.mostActiveHour.hour + 2) % 24)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.mostActiveHour.hour >= 6 && stats.mostActiveHour.hour < 22
                       ? "Healthy viewing hours"
                       : "Consider adjusting your viewing time"}
                   </p>
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Late Night Sessions */}
-            {stats.lateNightSessions.count > 0 && (
-              <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
-                <Moon className="h-5 w-5 text-destructive" />
-                <div>
-                  <span className="font-medium">
-                    {stats.lateNightSessions.count} late night{" "}
-                    {stats.lateNightSessions.count === 1
-                      ? "session"
-                      : "sessions"}
-                  </span>
-                  <p className="text-sm text-muted-foreground">
+        {/* Most Active Day */}
+        {stats.mostActiveDay && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Most Active Day</p>
+                  <p className="text-2xl font-bold mt-1">{stats.mostActiveDay.day}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatTime(stats.mostActiveDay.minutes)} watched on average
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Late Night Warning */}
+        {stats.lateNightSessions.count > 0 && (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-destructive/10 rounded-lg">
+                  <Moon className="h-5 w-5 text-destructive" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Late Night Sessions</p>
+                  <p className="text-2xl font-bold mt-1">{stats.lateNightSessions.count}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
                     Watching between 12am-5am this week
                   </p>
                 </div>
               </div>
-            )}
-
-            {/* Session Stats */}
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold">{stats.sessionsPerDay}</div>
-                <div className="text-sm text-muted-foreground">
-                  sessions/day
-                </div>
-              </div>
-              <div className="text-center p-3 bg-muted rounded-lg">
-                <div className="text-2xl font-bold">
-                  {formatTime(stats.avgSessionDuration)}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  avg session
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Most Rewatched Videos */}
       {stats.mostRewatched.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-info" />
               Most Rewatched
-              <span className="text-sm font-normal text-muted-foreground ml-2">
+              <span className="text-xs font-normal text-muted-foreground ml-auto">
                 last 30 days
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {stats.mostRewatched.map((video) => (
                 <Link
                   key={video.videoId}
                   href={`/watch/${video.videoId}`}
-                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
-                  <div className="relative w-20 h-12 flex-shrink-0">
+                  <div className="relative w-24 h-14 flex-shrink-0 rounded-md overflow-hidden bg-muted">
                     <Image
                       src={video.thumbnail}
                       alt=""
                       fill
-                      className="object-cover rounded"
-                      sizes="80px"
+                      className="object-cover group-hover:scale-105 transition-transform"
+                      sizes="96px"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{video.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Watched {video.count} times
+                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                      {video.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <RefreshCw className="h-3 w-3" />
+                      {video.count} times
                     </p>
                   </div>
                 </Link>
@@ -337,40 +459,6 @@ export default async function StatsPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-sm text-muted-foreground">
-              This Month
-            </div>
-            <div className="text-2xl font-bold">
-              {formatTime(stats.monthlyMinutes)}
-            </div>
-          </CardContent>
-        </Card>
-
-        {stats.mostActiveDay && (
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-sm text-muted-foreground">
-                Most Active Day
-              </div>
-              <div className="text-2xl font-bold">{stats.mostActiveDay.day}</div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-sm text-muted-foreground">
-              Videos Today
-            </div>
-            <div className="text-2xl font-bold">{stats.videosToday}</div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
