@@ -124,11 +124,11 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
   const hasAudioSource = !!audioUrl
 
   return (
-    <div className="bg-[var(--card)] dark:bg-gradient-to-b dark:from-[#1a1a1a] dark:to-[#0f0f0f] rounded-xl p-6 md:p-8">
+    <div className="bg-card dark:bg-gradient-to-b dark:from-[var(--background-alt)] dark:to-[var(--background)] rounded-xl p-6 md:p-8">
       <div className="flex flex-col items-center space-y-6">
         {/* Header - Clear visual indicator for audio mode */}
         <div
-          className="flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-4 py-2 rounded-full"
+          className="flex items-center gap-2 text-primary bg-primary/10 px-4 py-2 rounded-full"
           role="status"
           aria-live="polite"
         >
@@ -149,7 +149,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
           {isLoading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <div
-                className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
+                className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
                 role="status"
                 aria-label="Loading audio"
               />
@@ -192,13 +192,13 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
             aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
           >
             <div
-              className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-100 relative"
+              className="h-full bg-primary rounded-full transition-all duration-100 relative"
               style={{ width: `${progress}%` }}
             >
               {/* Scrubber dot - Always visible for better affordance */}
               <div className={cn(
                 "absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md",
-                "ring-2 ring-blue-600 dark:ring-blue-500",
+                "ring-2 ring-primary",
                 "opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100 transition-opacity"
               )} />
             </div>
@@ -229,8 +229,8 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
             disabled={isLoading && !hasAudioSource}
             className={cn(
               "h-16 w-16 rounded-full shadow-lg",
-              "bg-blue-600 hover:bg-blue-700 text-white",
-              "focus-visible:ring-4 focus-visible:ring-blue-500/50",
+              "bg-primary hover:opacity-90 text-primary-foreground",
+              "focus-visible:ring-4 focus-visible:ring-primary/50",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
             aria-label={isPlaying ? "Pause audio" : "Play audio"}

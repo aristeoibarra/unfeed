@@ -21,7 +21,7 @@ export default async function ChannelsPage() {
       {/* Page header */}
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Channels</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-muted-foreground mt-1">
           Manage your YouTube subscriptions
         </p>
       </header>
@@ -30,8 +30,8 @@ export default async function ChannelsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <Plus className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <CardTitle>Add Subscription</CardTitle>
@@ -50,14 +50,14 @@ export default async function ChannelsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <Users className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+            <div className="p-2 bg-success/20 rounded-lg">
+              <Users className="h-5 w-5 text-success" aria-hidden="true" />
             </div>
             <div>
               <CardTitle>
                 Your Channels
                 {subscriptions.length > 0 && (
-                  <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
                     ({subscriptions.length})
                   </span>
                 )}

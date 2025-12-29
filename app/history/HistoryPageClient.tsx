@@ -52,12 +52,12 @@ export function HistoryPageClient({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search history..."
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <button
           type="submit"
           disabled={searching}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {searching ? "..." : "Search"}
         </button>

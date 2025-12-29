@@ -17,12 +17,12 @@ export default async function HistoryPage() {
     <div className="space-y-8">
       {/* Page header */}
       <header className="flex items-center gap-4">
-        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-          <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+        <div className="p-3 bg-info/20 rounded-xl">
+          <Clock className="h-6 w-6 text-info" aria-hidden="true" />
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Watch History</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             {totalCount} {totalCount === 1 ? "video" : "videos"} watched
           </p>
         </div>

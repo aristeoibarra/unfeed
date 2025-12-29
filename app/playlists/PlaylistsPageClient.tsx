@@ -48,21 +48,21 @@ export function PlaylistsPageClient({ initialPlaylists }: PlaylistsPageClientPro
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Playlist name..."
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-ring"
             autoFocus
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !newName.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Creating..." : "Create"}
           </button>
           <button
             type="button"
             onClick={() => { setCreating(false); setNewName("") }}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90"
           >
             Cancel
           </button>
@@ -70,7 +70,7 @@ export function PlaylistsPageClient({ initialPlaylists }: PlaylistsPageClientPro
       ) : (
         <button
           onClick={() => setCreating(true)}
-          className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+          className="w-full p-4 border-2 border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -82,10 +82,10 @@ export function PlaylistsPageClient({ initialPlaylists }: PlaylistsPageClientPro
       {/* Playlist list */}
       {playlists.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400 mb-2">
+          <p className="text-muted-foreground mb-2">
             No playlists yet.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-foreground-dim">
             Create a playlist to organize your favorite videos.
           </p>
         </div>

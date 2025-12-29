@@ -23,12 +23,12 @@ export default async function WatchLaterPage() {
       {/* Page header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-            <BookmarkCheck className="h-6 w-6 text-green-600 dark:text-green-400" aria-hidden="true" />
+          <div className="p-3 bg-success/20 rounded-xl">
+            <BookmarkCheck className="h-6 w-6 text-success" aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Watch Later</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               {watchLater.length} {watchLater.length === 1 ? "video" : "videos"} saved
             </p>
           </div>

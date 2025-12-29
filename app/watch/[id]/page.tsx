@@ -49,7 +49,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
       {/* Watch time progress */}
       {hasLimitsConfigured && (
         <div className="flex justify-end">
-          <WatchTimeProgress className="text-gray-600 dark:text-gray-300" />
+          <WatchTimeProgress className="text-muted-foreground" />
         </div>
       )}
 
@@ -67,8 +67,8 @@ export default async function WatchPage({ params }: WatchPageProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <StickyNote className="h-5 w-5 text-yellow-600 dark:text-yellow-400" aria-hidden="true" />
+            <div className="p-2 bg-warning/20 rounded-lg">
+              <StickyNote className="h-5 w-5 text-warning" aria-hidden="true" />
             </div>
             <CardTitle>Notes</CardTitle>
           </div>

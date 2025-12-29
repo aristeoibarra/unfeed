@@ -50,7 +50,7 @@ export default async function SubscriptionPage({ params }: SubscriptionPageProps
 
       {result.videos.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             No videos yet. Videos will appear after the next sync.
           </p>
         </div>

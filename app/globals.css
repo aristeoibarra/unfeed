@@ -3,52 +3,85 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Design Tokens - TDA-friendly color scheme with reduced contrast for less visual strain */
+/* Design Tokens - Kanagawa Lotus (Light Mode) - TDA-friendly with reduced contrast */
 :root {
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #ffffff;
-  --border: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Kanagawa Lotus Palette */
+  --background: #f2ecbc;
+  --background-alt: #e7dba0;
+  --foreground: #1f1f28;
+  --foreground-dim: #545464;
+
+  /* Component colors */
+  --card: #dcd5ac;
+  --card-foreground: #1f1f28;
+  --popover: #dcd5ac;
+  --popover-foreground: #1f1f28;
+  --muted: #e7dba0;
+  --muted-foreground: #716e61;
+
+  /* Interactive colors */
+  --primary: #4d699b;
+  --primary-foreground: #f2ecbc;
+  --secondary: #e7dba0;
+  --secondary-foreground: #1f1f28;
+  --accent: #4d699b;
+  --accent-foreground: #f2ecbc;
+
+  /* Semantic colors */
+  --success: #6f894e;
+  --success-foreground: #f2ecbc;
+  --warning: #de9800;
+  --warning-foreground: #1f1f28;
+  --destructive: #c84053;
+  --destructive-foreground: #f2ecbc;
+  --info: #4d699b;
+  --info-foreground: #f2ecbc;
+
+  /* UI elements */
+  --border: #c9b97e;
+  --input: #dcd5ac;
+  --ring: #4d699b;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --input: oklch(0.922 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Charts - Kanagawa inspired */
+  --chart-1: #4d699b;
+  --chart-2: #6f894e;
+  --chart-3: #de9800;
+  --chart-4: #957fb8;
+  --chart-5: #c84053;
+
+  /* Sidebar */
+  --sidebar: #e7dba0;
+  --sidebar-foreground: #1f1f28;
+  --sidebar-primary: #4d699b;
+  --sidebar-primary-foreground: #f2ecbc;
+  --sidebar-accent: #dcd5ac;
+  --sidebar-accent-foreground: #1f1f28;
+  --sidebar-border: #c9b97e;
+  --sidebar-ring: #4d699b;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-alt: var(--background-alt);
   --color-foreground: var(--foreground);
+  --color-foreground-dim: var(--foreground-dim);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
   /* Animation timings - shorter for TDA users (reduced wait time) */
   --animate-duration: 150ms;
   --animate-timing: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Semantic colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* Component colors */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -66,6 +99,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -87,24 +121,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --muted: #1a1a1a;
-    --muted-foreground: #a3a3a3;
-    --card: #171717;
-    --card-foreground: #ededed;
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
-    --secondary: #262626;
-    --secondary-foreground: #e5e5e5;
-    --accent: #1e3a5f;
-    --accent-foreground: #bfdbfe;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: #262626;
-    --ring: #3b82f6;
-  }
-}
 
 /* Base styles */
 html {
@@ -332,38 +348,61 @@ body {
   overflow: hidden;
 }
 
+/* Design Tokens - Kanagawa Dragon (Dark Mode) */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Kanagawa Dragon Palette */
+  --background: #0d0c0c;
+  --background-alt: #12120f;
+  --foreground: #c5c9c5;
+  --foreground-dim: #a6a69c;
+
+  /* Component colors */
+  --card: #1D1C19;
+  --card-foreground: #c5c9c5;
+  --popover: #1D1C19;
+  --popover-foreground: #c5c9c5;
+  --muted: #12120f;
+  --muted-foreground: #a6a69c;
+
+  /* Interactive colors */
+  --primary: #7E9CD8;
+  --primary-foreground: #0d0c0c;
+  --secondary: #1D1C19;
+  --secondary-foreground: #c5c9c5;
+  --accent: #7E9CD8;
+  --accent-foreground: #0d0c0c;
+
+  /* Semantic colors */
+  --success: #98BB6C;
+  --success-foreground: #0d0c0c;
+  --warning: #E6C384;
+  --warning-foreground: #0d0c0c;
+  --destructive: #C34043;
+  --destructive-foreground: #c5c9c5;
+  --info: #7FB4CA;
+  --info-foreground: #0d0c0c;
+
+  /* UI elements */
+  --border: #2A2A2D;
+  --input: #1D1C19;
+  --ring: #7E9CD8;
+
+  /* Charts - Kanagawa Dragon inspired */
+  --chart-1: #7E9CD8;
+  --chart-2: #98BB6C;
+  --chart-3: #E6C384;
+  --chart-4: #957FB8;
+  --chart-5: #C34043;
+
+  /* Sidebar */
+  --sidebar: #12120f;
+  --sidebar-foreground: #c5c9c5;
+  --sidebar-primary: #7E9CD8;
+  --sidebar-primary-foreground: #0d0c0c;
+  --sidebar-accent: #1D1C19;
+  --sidebar-accent-foreground: #c5c9c5;
+  --sidebar-border: #2A2A2D;
+  --sidebar-ring: #7E9CD8;
 }
 
 @layer base {

@@ -3,15 +3,16 @@
 import { useState } from "react"
 import { createCategory, updateCategory, deleteCategory, type CategoryData } from "@/actions/categories"
 
+// Kanagawa-inspired color palette for categories
 const COLORS = [
-  { name: "Blue", value: "#3B82F6" },
-  { name: "Green", value: "#22C55E" },
-  { name: "Purple", value: "#A855F7" },
-  { name: "Orange", value: "#F97316" },
-  { name: "Pink", value: "#EC4899" },
-  { name: "Cyan", value: "#06B6D4" },
-  { name: "Red", value: "#EF4444" },
-  { name: "Yellow", value: "#EAB308" },
+  { name: "Crystal Blue", value: "#7E9CD8" },
+  { name: "Spring Green", value: "#98BB6C" },
+  { name: "Oni Violet", value: "#957FB8" },
+  { name: "Surimi Orange", value: "#FFA066" },
+  { name: "Sakura Pink", value: "#D27E99" },
+  { name: "Spring Blue", value: "#7FB4CA" },
+  { name: "Autumn Red", value: "#C34043" },
+  { name: "Carp Yellow", value: "#E6C384" },
 ]
 
 interface CategoryManagerProps {
@@ -96,14 +97,14 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New category name..."
-          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-3 py-2 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-ring"
           disabled={loading}
         />
         <div className="flex gap-2">
           <select
             value={newColor}
             onChange={(e) => setNewColor(e.target.value)}
-            className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 sm:flex-none px-3 py-2 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-ring"
             style={{ borderLeftColor: newColor, borderLeftWidth: 4 }}
             disabled={loading}
           >
@@ -116,7 +117,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
           <button
             type="submit"
             disabled={loading || !newName.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
           >
             Add
           </button>
@@ -124,12 +125,12 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
       </form>
 
       {error && (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-destructive">{error}</p>
       )}
 
       {/* Categories list */}
       {categories.length === 0 ? (
-        <p className="text-gray-500 text-sm py-4">
+        <p className="text-muted-foreground text-sm py-4">
           No categories yet. Create one to organize your subscriptions.
         </p>
       ) : (
@@ -137,7 +138,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
           {categories.map((category) => (
             <div
               key={category.id}
-              className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+              className="flex items-center gap-3 p-3 border border-border rounded-lg"
               style={{ borderLeftColor: category.color || "#6B7280", borderLeftWidth: 4 }}
             >
               {editingId === category.id ? (
@@ -146,14 +147,14 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                    className="flex-1 px-2 py-1 border border-border rounded bg-card"
                     autoFocus
                   />
                   <div className="flex gap-2">
                     <select
                       value={editColor}
                       onChange={(e) => setEditColor(e.target.value)}
-                      className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                      className="flex-1 sm:flex-none px-2 py-1 border border-border rounded bg-card"
                     >
                       {COLORS.map(color => (
                         <option key={color.value} value={color.value}>
@@ -164,13 +165,13 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
                     <button
                       onClick={() => handleUpdate(category.id)}
                       disabled={loading}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                      className="px-3 py-1 text-sm bg-success text-success-foreground rounded hover:opacity-90"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                      className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded hover:opacity-90"
                     >
                       Cancel
                     </button>
@@ -179,12 +180,12 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
               ) : (
                 <>
                   <span className="flex-1 font-medium">{category.name}</span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {category._count?.subscriptions || 0} channel{(category._count?.subscriptions || 0) !== 1 ? "s" : ""}
                   </span>
                   <button
                     onClick={() => startEditing(category)}
-                    className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="p-1 text-muted-foreground hover:text-foreground"
                     title="Edit"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -193,7 +194,7 @@ export function CategoryManager({ categories: initialCategories }: CategoryManag
                   </button>
                   <button
                     onClick={() => handleDelete(category.id)}
-                    className="p-1 text-gray-500 hover:text-red-600"
+                    className="p-1 text-muted-foreground hover:text-destructive"
                     title="Delete"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">

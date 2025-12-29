@@ -52,15 +52,15 @@ export default async function StatsPage() {
       {/* Page header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+          <div className="p-3 bg-chart-4/20 rounded-xl">
             <BarChart3
-              className="h-6 w-6 text-purple-600 dark:text-purple-400"
+              className="h-6 w-6 text-chart-4"
               aria-hidden="true"
             />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Stats</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               Your watch time analytics
             </p>
           </div>
@@ -71,7 +71,7 @@ export default async function StatsPage() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-500" />
+            <Clock className="h-5 w-5 text-info" />
             This Week
           </CardTitle>
         </CardHeader>
@@ -82,7 +82,7 @@ export default async function StatsPage() {
                 {formatTime(stats.weeklyMinutes)}
               </span>
               {stats.weeklyLimit && (
-                <span className="text-gray-500 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   / {formatTime(stats.weeklyLimit)} limit
                 </span>
               )}
@@ -92,10 +92,10 @@ export default async function StatsPage() {
                 value={weeklyPercentage}
                 className={`h-3 ${
                   weeklyPercentage >= 100
-                    ? "[&>div]:bg-red-500"
+                    ? "[&>div]:bg-destructive"
                     : weeklyPercentage >= 80
-                      ? "[&>div]:bg-orange-500"
-                      : "[&>div]:bg-green-500"
+                      ? "[&>div]:bg-warning"
+                      : "[&>div]:bg-success"
                 }`}
               />
             )}
@@ -108,7 +108,7 @@ export default async function StatsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Today
               </span>
               <span className="text-2xl font-bold">
@@ -119,10 +119,10 @@ export default async function StatsPage() {
                   value={dailyPercentage}
                   className={`h-1.5 mt-1 ${
                     dailyPercentage >= 100
-                      ? "[&>div]:bg-red-500"
+                      ? "[&>div]:bg-destructive"
                       : dailyPercentage >= 80
-                        ? "[&>div]:bg-orange-500"
-                        : "[&>div]:bg-blue-500"
+                        ? "[&>div]:bg-warning"
+                        : "[&>div]:bg-primary"
                   }`}
                 />
               )}
@@ -133,7 +133,7 @@ export default async function StatsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Daily Average
               </span>
               <span className="text-2xl font-bold">
@@ -146,12 +146,12 @@ export default async function StatsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
                 <PlayCircle className="h-4 w-4" />
                 Videos
               </span>
               <span className="text-2xl font-bold">{stats.videosWeek}</span>
-              <span className="text-xs text-gray-500">this week</span>
+              <span className="text-xs text-muted-foreground">this week</span>
             </div>
           </CardContent>
         </Card>
@@ -159,13 +159,13 @@ export default async function StatsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
                 <CheckCircle2 className="h-4 w-4" />
                 Completed
               </span>
               <span className="text-2xl font-bold">
                 {stats.completionRate.completed}
-                <span className="text-base font-normal text-gray-500 ml-1">
+                <span className="text-base font-normal text-muted-foreground ml-1">
                   ({stats.completionRate.rate}%)
                 </span>
               </span>
@@ -179,9 +179,9 @@ export default async function StatsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
+              <TrendingUp className="h-5 w-5 text-success" />
               Top Channels
-              <span className="text-sm font-normal text-gray-500">
+              <span className="text-sm font-normal text-muted-foreground">
                 this week
               </span>
             </CardTitle>
@@ -192,23 +192,23 @@ export default async function StatsPage() {
                 <div key={channel.channelId} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-500 w-4">
+                      <span className="text-sm font-medium text-muted-foreground w-4">
                         {index + 1}.
                       </span>
                       <Link
                         href={`/subscription/${channel.channelId}`}
-                        className="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        className="text-sm font-medium hover:text-primary transition-colors"
                       >
                         {channel.channelName}
                       </Link>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 tabular-nums">
+                    <span className="text-sm text-muted-foreground tabular-nums">
                       {formatTime(channel.minutes)}
                     </span>
                   </div>
                   <Progress
                     value={(channel.minutes / maxChannelMinutes) * 100}
-                    className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-purple-500"
+                    className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-chart-4"
                   />
                 </div>
               ))}
@@ -225,13 +225,13 @@ export default async function StatsPage() {
         <CardContent>
           <div className="space-y-4">
             {/* Watch Streak */}
-            <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <Flame className="h-5 w-5 text-orange-500" />
+            <div className="flex items-center gap-3 p-3 bg-warning/10 rounded-lg">
+              <Flame className="h-5 w-5 text-warning" />
               <div>
                 <span className="font-medium">
                   {stats.watchStreak} day streak
                 </span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {stats.watchStreak > 0
                     ? "Keep it going!"
                     : "Start watching to build a streak"}
@@ -241,14 +241,14 @@ export default async function StatsPage() {
 
             {/* Most Active Time */}
             {stats.mostActiveHour && (
-              <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="h-3 w-3 rounded-full bg-green-500" />
+              <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+                <div className="h-3 w-3 rounded-full bg-success" />
                 <div>
                   <span className="font-medium">
                     Most active: {formatHour(stats.mostActiveHour.hour)} -{" "}
                     {formatHour((stats.mostActiveHour.hour + 2) % 24)}
                   </span>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {stats.mostActiveHour.hour >= 6 &&
                     stats.mostActiveHour.hour < 22
                       ? "Healthy viewing hours"
@@ -260,8 +260,8 @@ export default async function StatsPage() {
 
             {/* Late Night Sessions */}
             {stats.lateNightSessions.count > 0 && (
-              <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <Moon className="h-5 w-5 text-red-500" />
+              <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
+                <Moon className="h-5 w-5 text-destructive" />
                 <div>
                   <span className="font-medium">
                     {stats.lateNightSessions.count} late night{" "}
@@ -269,7 +269,7 @@ export default async function StatsPage() {
                       ? "session"
                       : "sessions"}
                   </span>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Watching between 12am-5am this week
                   </p>
                 </div>
@@ -278,17 +278,17 @@ export default async function StatsPage() {
 
             {/* Session Stats */}
             <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold">{stats.sessionsPerDay}</div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   sessions/day
                 </div>
               </div>
-              <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="text-center p-3 bg-muted rounded-lg">
                 <div className="text-2xl font-bold">
                   {formatTime(stats.avgSessionDuration)}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   avg session
                 </div>
               </div>
@@ -303,7 +303,7 @@ export default async function StatsPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium">
               Most Rewatched
-              <span className="text-sm font-normal text-gray-500 ml-2">
+              <span className="text-sm font-normal text-muted-foreground ml-2">
                 last 30 days
               </span>
             </CardTitle>
@@ -314,7 +314,7 @@ export default async function StatsPage() {
                 <Link
                   key={video.videoId}
                   href={`/watch/${video.videoId}`}
-                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted transition-colors"
                 >
                   <div className="relative w-20 h-12 flex-shrink-0">
                     <Image
@@ -327,7 +327,7 @@ export default async function StatsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{video.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-muted-foreground">
                       Watched {video.count} times
                     </p>
                   </div>
@@ -342,7 +342,7 @@ export default async function StatsPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-muted-foreground">
               This Month
             </div>
             <div className="text-2xl font-bold">
@@ -354,7 +354,7 @@ export default async function StatsPage() {
         {stats.mostActiveDay && (
           <Card>
             <CardContent className="pt-6 text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 Most Active Day
               </div>
               <div className="text-2xl font-bold">{stats.mostActiveDay.day}</div>
@@ -364,7 +364,7 @@ export default async function StatsPage() {
 
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-muted-foreground">
               Videos Today
             </div>
             <div className="text-2xl font-bold">{stats.videosToday}</div>
