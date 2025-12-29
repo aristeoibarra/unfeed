@@ -128,8 +128,8 @@ export function SyncStatus({ summary, recentLogs }: SyncStatusProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#957FB8]/10 rounded-lg">
-            <RefreshCw className="h-4 w-4 text-[#957FB8]" />
+          <div className="p-2 bg-chart-4/10 rounded-lg">
+            <RefreshCw className="h-4 w-4 text-chart-4" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Next auto sync</p>

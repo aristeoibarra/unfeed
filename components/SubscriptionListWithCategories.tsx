@@ -215,7 +215,7 @@ export function SubscriptionListWithCategories({
                 {category && (
                   <span
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: category.color || "#7a8382" }}
+                    style={{ backgroundColor: category.color || "var(--muted-foreground)" }}
                   />
                 )}
                 <span className="text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
@@ -292,7 +292,7 @@ export function SubscriptionListWithCategories({
                           >
                             <span
                               className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: subscription.category.color || "#7a8382" }}
+                              style={{ backgroundColor: subscription.category.color || "var(--muted-foreground)" }}
                             />
                             {subscription.category.name}
                           </span>
@@ -359,7 +359,7 @@ export function SubscriptionListWithCategories({
                                 >
                                   <span
                                     className="w-2 h-2 rounded-full mr-2"
-                                    style={{ backgroundColor: cat.color || "#7a8382" }}
+                                    style={{ backgroundColor: cat.color || "var(--muted-foreground)" }}
                                   />
                                   {cat.name}
                                   {subscription.categoryId === cat.id && (

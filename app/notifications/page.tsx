@@ -13,7 +13,7 @@ export default async function NotificationsPage() {
       <h1 className="text-2xl font-bold">
         Notifications
         {result.unreadCount > 0 && (
-          <span className="ml-2 text-lg font-normal text-gray-500">
+          <span className="ml-2 text-lg font-normal text-muted-foreground">
             ({result.unreadCount} unread)
           </span>
         )}

@@ -129,11 +129,11 @@ export function SubscriptionFilter({ subscriptions, categories = [] }: Subscript
                 ? "text-primary-foreground"
                 : "bg-muted hover:bg-muted/80"
             }`}
-            style={isActive ? { backgroundColor: cat.color || "#7E9CD8" } : {}}
+            style={isActive ? { backgroundColor: cat.color || "var(--primary)" } : {}}
           >
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: cat.color || "#7a8382" }}
+              style={{ backgroundColor: cat.color || "var(--muted-foreground)" }}
             />
             {cat.name}
           </button>

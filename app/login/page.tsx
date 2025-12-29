@@ -34,8 +34,8 @@ export default async function LoginPage() {
         {/* Logo and title - Clear visual hierarchy */}
         <header className="text-center mb-10">
           {/* Logo mark */}
-          <div className="mx-auto w-16 h-16 mb-6 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg">
-            <span className="text-white text-2xl font-bold" aria-hidden="true">U</span>
+          <div className="mx-auto w-16 h-16 mb-6 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
+            <span className="text-primary-foreground text-2xl font-bold" aria-hidden="true">U</span>
           </div>
           <h1 className="text-3xl font-bold text-[var(--foreground)]">
             Unfeed
