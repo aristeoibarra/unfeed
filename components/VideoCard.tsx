@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { VideoCardProgress } from "./ProgressBar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type ReactionType = "like" | "dislike" | null
 
@@ -216,13 +217,13 @@ export function VideoCardSkeleton() {
       aria-label="Loading video..."
     >
       {/* Thumbnail skeleton */}
-      <div className="aspect-video rounded-xl bg-[var(--secondary)] animate-pulse" />
+      <Skeleton className="aspect-video rounded-xl" />
       {/* Text content skeleton */}
       <div className="space-y-2 px-1">
-        <div className="h-4 bg-[var(--secondary)] rounded animate-pulse" />
-        <div className="h-4 w-3/4 bg-[var(--secondary)] rounded animate-pulse" />
-        <div className="h-3 w-1/2 bg-[var(--secondary)] rounded animate-pulse" />
-        <div className="h-3 w-1/4 bg-[var(--secondary)] rounded animate-pulse" />
+        <Skeleton className="h-4" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-3 w-1/4" />
       </div>
       <span className="sr-only">Loading video content...</span>
     </div>

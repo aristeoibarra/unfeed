@@ -163,7 +163,7 @@ export function VideoPlayer({
             aria-live="polite"
           >
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-[var(--secondary)] animate-pulse" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
                   className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"

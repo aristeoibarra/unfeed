@@ -282,7 +282,7 @@ export function Player({
         >
           {/* Skeleton loader animation */}
           <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-[var(--secondary)] animate-pulse" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
                 className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
