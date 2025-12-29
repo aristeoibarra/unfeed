@@ -86,13 +86,8 @@ Audio files are automatically downloaded to disk when you use Audio Mode. This p
 
 **Configuration:**
 ```env
-# Directory for cached audio files
-AUDIO_CACHE_DIR=./audio-cache          # Development
-AUDIO_CACHE_DIR=/home/ec2-user/audio-cache  # Production (EC2)
-
-# Maximum disk usage for audio cache (in GB)
-MAX_AUDIO_CACHE_GB=5   # Development
-MAX_AUDIO_CACHE_GB=50  # Production
+AUDIO_CACHE_DIR=./audio-cache
+MAX_AUDIO_CACHE_GB=5
 ```
 
 **How it works:**
@@ -100,16 +95,6 @@ MAX_AUDIO_CACHE_GB=50  # Production
 2. If audio file exists locally → serve instantly
 3. If not → stream from YouTube while downloading in background
 4. Files not played in 30+ days are automatically cleaned up
-
-**Setup for production (EC2):**
-```bash
-# Create cache directory
-mkdir -p /home/ec2-user/audio-cache
-
-# Add daily cleanup cron (3 AM)
-crontab -e
-0 3 * * * curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain.com/api/cron/audio-cleanup
-```
 
 ## Installation
 
@@ -135,25 +120,21 @@ bun run dev
 
 ## Environment Variables
 
+See `.env.example` for all available options. Key variables:
+
 ```env
 # YouTube API
 YOUTUBE_API_KEY=your_youtube_api_key
 
-# Authentication
+# Authentication (generate with: openssl rand -base64 32)
 AUTH_SECRET=your_session_secret
-AUTH_EMAIL=your@email.com
-AUTH_PASSWORD_HASH=your_password_hash
 
-# Cron jobs
-CRON_SECRET=your_cron_secret_for_sync
+# Cron jobs (generate with: openssl rand -base64 32)
+CRON_SECRET=your_cron_secret
 
-# Audio Cache (Offline Mode)
+# Audio Cache
 AUDIO_CACHE_DIR=./audio-cache
 MAX_AUDIO_CACHE_GB=5
-
-# yt-dlp (optional, for production)
-YT_DLP_PATH=/home/ec2-user/.local/bin/yt-dlp
-YT_DLP_COOKIES_PATH=/home/ec2-user/cookies_youtube.txt
 ```
 
 ## Configure YouTube API Key
@@ -180,6 +161,62 @@ bun run build    # Production build
 bun run start    # Start production
 bun run lint     # Run linter
 bun run tunnel   # Expose dev server to internet (for PWA testing)
+```
+
+## Production Deployment
+
+### Build and Start
+
+```bash
+bun install
+bunx prisma generate
+bunx prisma db push
+bun run build
+bun run start
+```
+
+### Process Manager (PM2)
+
+```bash
+# Install PM2
+npm install -g pm2
+
+# Start application
+pm2 start "bun run start" --name unfeed
+
+# Auto-start on reboot
+pm2 save
+pm2 startup
+```
+
+### Cron Jobs
+
+Configure scheduled tasks for video sync and audio cleanup:
+
+```bash
+crontab -e
+```
+
+Add (replace `YOUR_CRON_SECRET` and `your-domain.com`):
+
+```cron
+# Sync videos every 6 hours
+0 */6 * * * curl -s -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron/sync
+
+# Audio cleanup daily at 3 AM
+0 3 * * * curl -s -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron/audio-cleanup
+```
+
+### Update Deployment
+
+```bash
+pm2 stop unfeed
+git pull origin main
+bun install
+bunx prisma generate
+bunx prisma db push
+bun run build
+pm2 restart unfeed
 ```
 
 ## PWA Testing on Mobile
