@@ -70,7 +70,7 @@ export function WatchLaterButton({ video, isInWatchLater: initial, variant = "bu
             className={`p-2 rounded-full transition-all duration-150 ${
               isInWatchLater
                 ? "bg-primary text-primary-foreground"
-                : "bg-black/50 text-white hover:bg-black/70"
+                : "bg-muted/80 text-muted-foreground hover:bg-muted"
             } disabled:opacity-50`}
             aria-label={isInWatchLater ? "Remove from Watch Later" : "Add to Watch Later"}
           >

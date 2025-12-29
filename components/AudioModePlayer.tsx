@@ -197,7 +197,7 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
             >
               {/* Scrubber dot - Always visible for better affordance */}
               <div className={cn(
-                "absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-md",
+                "absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-background rounded-full shadow-md",
                 "ring-2 ring-primary",
                 "opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus:opacity-100 transition-opacity"
               )} />

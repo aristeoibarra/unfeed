@@ -15,7 +15,7 @@ const KANAGAWA_DRAGON = {
   warning: "#E6C384",
   destructive: "#C34043",
   info: "#7FB4CA",
-  border: "#2A2A2D",
+  border: "#282727", // dragonBlack4
 };
 
 // Kanagawa Lotus color palette (light mode)
