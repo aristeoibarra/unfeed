@@ -107,6 +107,10 @@
 }
 
 /* Base styles */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
