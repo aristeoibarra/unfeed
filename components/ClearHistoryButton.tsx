@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Trash2, Loader2 } from "lucide-react"
+import { Trash2, Loader2, History } from "lucide-react"
 
 export function ClearHistoryButton() {
   const { toast } = useToast()
@@ -41,14 +41,14 @@ export function ClearHistoryButton() {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-          <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" aria-hidden="true" />
+        <div className="p-2 bg-destructive/10 rounded-lg">
+          <History className="h-5 w-5 text-destructive" aria-hidden="true" />
         </div>
         <div>
           <p className="font-medium">Clear watch history</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Remove all videos from your watch history
           </p>
         </div>
@@ -57,7 +57,8 @@ export function ClearHistoryButton() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="destructive" size="sm">
-            Clear history
+            <Trash2 className="h-4 w-4 mr-2" />
+            Clear
           </Button>
         </DialogTrigger>
         <DialogContent>

@@ -5,7 +5,7 @@ import { updateTimeLimits } from "@/actions/settings"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { Clock, Loader2, X } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 
 interface TimeLimitSettingsProps {
   initialDailyLimit: number | null
@@ -19,6 +19,20 @@ function minutesToHoursMinutes(minutes: number): string {
   if (mins === 0) return `${hours}h`
   return `${hours}h ${mins}m`
 }
+
+const DAILY_PRESETS = [
+  { label: "30m", value: 30 },
+  { label: "1h", value: 60 },
+  { label: "2h", value: 120 },
+  { label: "3h", value: 180 },
+]
+
+const WEEKLY_PRESETS = [
+  { label: "5h", value: 300 },
+  { label: "7h", value: 420 },
+  { label: "10h", value: 600 },
+  { label: "14h", value: 840 },
+]
 
 export function TimeLimitSettings({
   initialDailyLimit,
@@ -45,6 +59,14 @@ export function TimeLimitSettings({
   function handleWeeklyChange(value: string) {
     setWeeklyLimit(value)
     setHasChanges(dailyLimit !== initialDailyStr || value !== initialWeeklyStr)
+  }
+
+  function setDailyPreset(value: number) {
+    handleDailyChange(value.toString())
+  }
+
+  function setWeeklyPreset(value: number) {
+    handleWeeklyChange(value.toString())
   }
 
   function clearDaily() {
@@ -128,30 +150,53 @@ export function TimeLimitSettings({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg mt-1">
-          <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" aria-hidden="true" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-medium">Watch time limits</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Set daily and weekly limits to manage your screen time. You&apos;ll get a warning at 80% and a notification when you reach your limit.
-          </p>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Set daily and weekly limits to manage your screen time. You&apos;ll get a warning at 80% and a notification when you reach your limit.
+      </p>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         {/* Daily limit */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label htmlFor="daily-limit" className="text-sm font-medium">
-            Daily limit (minutes)
+            Daily limit
           </label>
+
+          {/* Presets */}
+          <div className="flex flex-wrap gap-2">
+            {DAILY_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => setDailyPreset(preset.value)}
+                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                  dailyLimit === preset.value.toString()
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 border-border hover:bg-muted"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearDaily}
+              className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                !dailyLimit
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted/50 border-border hover:bg-muted"
+              }`}
+            >
+              None
+            </button>
+          </div>
+
+          {/* Custom input */}
           <div className="relative">
             <Input
               id="daily-limit"
               type="number"
               min="1"
-              placeholder="e.g., 120"
+              placeholder="Custom (minutes)"
               value={dailyLimit}
               onChange={(e) => handleDailyChange(e.target.value)}
               className="pr-8"
@@ -160,7 +205,7 @@ export function TimeLimitSettings({
               <button
                 type="button"
                 onClick={clearDaily}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Clear daily limit"
               >
                 <X className="h-4 w-4" />
@@ -168,23 +213,54 @@ export function TimeLimitSettings({
             )}
           </div>
           {dailyPreview && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               = {dailyPreview} per day
             </p>
           )}
         </div>
 
         {/* Weekly limit */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label htmlFor="weekly-limit" className="text-sm font-medium">
-            Weekly limit (minutes)
+            Weekly limit
           </label>
+
+          {/* Presets */}
+          <div className="flex flex-wrap gap-2">
+            {WEEKLY_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => setWeeklyPreset(preset.value)}
+                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                  weeklyLimit === preset.value.toString()
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 border-border hover:bg-muted"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearWeekly}
+              className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                !weeklyLimit
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted/50 border-border hover:bg-muted"
+              }`}
+            >
+              None
+            </button>
+          </div>
+
+          {/* Custom input */}
           <div className="relative">
             <Input
               id="weekly-limit"
               type="number"
               min="1"
-              placeholder="e.g., 600"
+              placeholder="Custom (minutes)"
               value={weeklyLimit}
               onChange={(e) => handleWeeklyChange(e.target.value)}
               className="pr-8"
@@ -193,7 +269,7 @@ export function TimeLimitSettings({
               <button
                 type="button"
                 onClick={clearWeekly}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Clear weekly limit"
               >
                 <X className="h-4 w-4" />
@@ -201,14 +277,14 @@ export function TimeLimitSettings({
             )}
           </div>
           {weeklyPreview && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               = {weeklyPreview} per week
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-2">
         <Button
           onClick={handleSave}
           disabled={loading || !hasChanges}

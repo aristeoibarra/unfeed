@@ -41,10 +41,10 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg">
-          <ThumbsDown className="h-5 w-5 text-gray-600 dark:text-gray-300" aria-hidden="true" />
+        <div className="p-2 bg-muted rounded-lg">
+          <ThumbsDown className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         </div>
         <div>
           <label
@@ -53,14 +53,14 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
           >
             Hide disliked videos
           </label>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Videos you dislike will be hidden from your feed
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {loading && (
-          <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden="true" />
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
         )}
         <Switch
           id="hide-disliked"
