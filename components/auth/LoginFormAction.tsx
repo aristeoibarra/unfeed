@@ -122,7 +122,6 @@ export function LoginFormAction() {
       <Button
         type="submit"
         disabled={isPending}
-        loading={isPending}
         className="w-full h-11 text-base"
       >
         {isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
