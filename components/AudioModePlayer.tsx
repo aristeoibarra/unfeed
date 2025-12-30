@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import { usePlayer } from "@/contexts/PlayerContext"
+import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +17,16 @@ import {
 
 interface AudioModePlayerProps {
   onSwitchToVideo: () => void
+}
+
+function getMediaErrorMessage(code: number): string {
+  switch (code) {
+    case 1: return "MEDIA_ERR_ABORTED - Fetch aborted"
+    case 2: return "MEDIA_ERR_NETWORK - Network error"
+    case 3: return "MEDIA_ERR_DECODE - Decode error"
+    case 4: return "MEDIA_ERR_SRC_NOT_SUPPORTED - Source not supported"
+    default: return `Unknown error code: ${code}`
+  }
 }
 
 function formatTime(seconds: number): string {
@@ -43,8 +54,13 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     duration,
   } = usePlayer()
 
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState("Loading audio...")
   const progressRef = useRef<HTMLDivElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const hasShownLoadingToast = useRef(false)
 
   // Handle loading state - check if audio is ready to play
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: sync loading state with audio element */
@@ -54,25 +70,93 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
     // If no audio element or no URL, we're still loading
     if (!audio || !audioUrl) {
       setIsLoading(true)
-      return
+      setLoadingMessage("Fetching audio stream...")
+
+      // Show loading toast after 2 seconds if still loading
+      if (!hasShownLoadingToast.current) {
+        timeoutRef.current = setTimeout(() => {
+          if (!audioUrl) {
+            hasShownLoadingToast.current = true
+            toast({
+              title: "Loading audio...",
+              description: "Extracting audio stream from video. This may take a moment.",
+            })
+          }
+        }, 2000)
+      }
+
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+      }
     }
 
-    const handleCanPlay = () => setIsLoading(false)
-    const handleCanPlayThrough = () => setIsLoading(false)
-    const handleWaiting = () => setIsLoading(true)
-    const handlePlaying = () => setIsLoading(false)
-    const handleLoadedData = () => setIsLoading(false)
+    // Clear timeout when we have audioUrl
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    setLoadingMessage("Buffering audio...")
+
+    const handleCanPlay = () => {
+      setIsLoading(false)
+      setHasError(false)
+    }
+    const handleCanPlayThrough = () => {
+      setIsLoading(false)
+      setHasError(false)
+    }
+    const handleWaiting = () => {
+      setIsLoading(true)
+      setLoadingMessage("Buffering...")
+    }
+    const handlePlaying = () => {
+      setIsLoading(false)
+      setHasError(false)
+    }
+    const handleLoadedData = () => {
+      setIsLoading(false)
+      setHasError(false)
+    }
+    const handleError = (e: Event) => {
+      setIsLoading(false)
+      setHasError(true)
+      const audioEl = e.target as HTMLAudioElement
+      const error = audioEl?.error
+      const errorMessage = error
+        ? `Code ${error.code}: ${error.message || getMediaErrorMessage(error.code)}`
+        : "Unknown error"
+      toast({
+        title: "Audio error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
 
     audio.addEventListener("canplay", handleCanPlay)
     audio.addEventListener("canplaythrough", handleCanPlayThrough)
     audio.addEventListener("waiting", handleWaiting)
     audio.addEventListener("playing", handlePlaying)
     audio.addEventListener("loadeddata", handleLoadedData)
+    audio.addEventListener("error", handleError)
 
     // Check if audio is already ready
     if (audio.readyState >= 2 && audio.src) {
       setIsLoading(false)
     }
+
+    // Timeout for audio loading (15 seconds)
+    const loadTimeout = setTimeout(() => {
+      if (isLoading && !audio.readyState) {
+        setHasError(true)
+        toast({
+          title: "Audio loading timeout",
+          description: "Audio is taking too long to load. Try switching to video mode.",
+          variant: "destructive",
+        })
+      }
+    }, 15000)
 
     return () => {
       audio.removeEventListener("canplay", handleCanPlay)
@@ -80,9 +164,16 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
       audio.removeEventListener("waiting", handleWaiting)
       audio.removeEventListener("playing", handlePlaying)
       audio.removeEventListener("loadeddata", handleLoadedData)
+      audio.removeEventListener("error", handleError)
+      clearTimeout(loadTimeout)
     }
-  }, [audioRef, audioUrl])
+  }, [audioRef, audioUrl, toast, isLoading])
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Reset toast flag when audioUrl changes
+  useEffect(() => {
+    hasShownLoadingToast.current = false
+  }, [currentVideo?.videoId])
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !duration) return
@@ -146,13 +237,20 @@ export function AudioModePlayer({ onSwitchToVideo }: AudioModePlayerProps) {
             className="object-cover"
             sizes="(max-width: 768px) 160px, 224px"
           />
-          {isLoading && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div
-                className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
-                role="status"
-                aria-label="Loading audio"
-              />
+          {(isLoading || hasError) && (
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
+              {hasError ? (
+                <span className="text-destructive text-xs font-medium">Error</span>
+              ) : (
+                <>
+                  <div
+                    className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                    role="status"
+                    aria-label="Loading audio"
+                  />
+                  <span className="text-white/80 text-xs">{loadingMessage}</span>
+                </>
+              )}
             </div>
           )}
         </div>

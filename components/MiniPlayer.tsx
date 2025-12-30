@@ -36,8 +36,8 @@ export function MiniPlayer() {
 
   return (
     <>
-      {/* Fixed mini player at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg">
+      {/* Fixed mini player at bottom - above nav on mobile */}
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
         {/* Progress bar */}
         <div className="h-1 bg-muted">
           <div
@@ -120,7 +120,7 @@ export function MiniPlayer() {
       </div>
 
       {/* Spacer to prevent content from being hidden behind mini player */}
-      <div className="h-20" />
+      <div className="h-24 md:h-20" />
     </>
   )
 }
