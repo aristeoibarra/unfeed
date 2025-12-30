@@ -187,19 +187,17 @@ export function NotificationBell({ initialCount, initialNotifications }: Notific
   }
 
   const bellButton = (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="relative h-11 w-11 rounded-full"
+    <button
+      className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
       aria-label="Notifications"
     >
       <Bell className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-destructive-foreground bg-destructive rounded-full">
+        <span className="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-destructive-foreground bg-destructive rounded-full">
           {count > 99 ? "99+" : count}
         </span>
       )}
-    </Button>
+    </button>
   )
 
   if (isDesktop) {

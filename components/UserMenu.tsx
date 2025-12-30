@@ -26,10 +26,11 @@ interface UserMenuProps {
   email: string
 }
 
-function UserAvatar({ initial }: { initial: string }) {
+function UserAvatar({ initial, size = "default" }: { initial: string; size?: "default" | "small" }) {
+  const sizeClasses = size === "small" ? "h-8 w-8 text-sm" : "h-10 w-10 text-base"
   return (
-    <Avatar className="h-11 w-11 cursor-pointer">
-      <AvatarFallback className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-base transition-colors duration-150">
+    <Avatar className={`${sizeClasses} cursor-pointer`}>
+      <AvatarFallback className="bg-primary text-primary-foreground font-medium">
         {initial}
       </AvatarFallback>
     </Avatar>
@@ -58,14 +59,12 @@ export function UserMenu({ email }: UserMenuProps) {
   const initial = email.charAt(0).toUpperCase()
 
   const menuButton = (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-11 w-11 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 transition-transform duration-150 hover:scale-105 active:scale-95"
+    <button
+      className="rounded-full focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-2 transition-transform duration-150 hover:scale-105 active:scale-95"
       aria-label={`User menu for ${email}`}
     >
-      <UserAvatar initial={initial} />
-    </Button>
+      <UserAvatar initial={initial} size="small" />
+    </button>
   )
 
   const menuContent = (
