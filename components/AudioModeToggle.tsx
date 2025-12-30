@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAudioUrl, isAudioModeAvailable } from "@/actions/audio"
+import { isAudioModeAvailable } from "@/actions/audio"
 import { usePlayer } from "@/contexts/PlayerContext"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -61,7 +61,8 @@ export function AudioModeToggle({ videoId, video, currentVideoTime = 0 }: AudioM
         }
       }
 
-      const audioUrl = await getAudioUrl(videoId)
+      // Use the proxy endpoint to avoid CORS issues
+      const audioUrl = `/api/audio/${videoId}/stream`
 
       if (audioUrl) {
         setAudioUrl(audioUrl)

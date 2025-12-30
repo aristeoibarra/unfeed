@@ -6,6 +6,7 @@ import { LikeDislikeButton } from "./LikeDislikeButton"
 import { AddToPlaylistButton } from "./AddToPlaylistButton"
 import { AudioModePlayer } from "./AudioModePlayer"
 import { AudioModeToggle } from "./AudioModeToggle"
+import { AudioDownloadButton } from "./AudioDownloadButton"
 import { RestartButton } from "./RestartButton"
 import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
@@ -207,6 +208,7 @@ export function VideoPlayer({
             <LikeDislikeButton videoId={videoId} initialReaction={initialReaction} />
             <AddToPlaylistButton video={video} />
             <WatchLaterButton video={video} isInWatchLater={initialInWatchLater} />
+            <AudioDownloadButton videoId={videoId} />
             {savedProgress !== null && savedProgress > 30 && (
               <RestartButton onRestart={handleRestart} />
             )}
