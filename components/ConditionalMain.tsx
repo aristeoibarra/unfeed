@@ -38,7 +38,7 @@ export function ConditionalMain({ children }: ConditionalMainProps) {
     <main
       id="main-content"
       className={`max-w-6xl mx-auto px-4 pt-6 md:pt-8 min-h-[calc(100vh-4rem)] safe-bottom ${
-        isWatchPage ? "pb-6 md:pb-8" : "pb-32 md:pb-8"
+        isWatchPage ? "pb-6 md:pb-8" : "pb-40 md:pb-16"
       }`}
       tabIndex={-1}
     >

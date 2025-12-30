@@ -318,7 +318,7 @@ body {
 
 /* Better touch targets for mobile */
 @media (pointer: coarse) {
-  button,
+  button:not([role="switch"]),
   a,
   [role="button"] {
     min-height: 44px;
