@@ -303,6 +303,17 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Bottom padding for content above mobile nav (nav height 64px + safe area + buffer) */
+.pb-mobile-nav {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: 5rem;
+  }
+}
+
 .safe-left {
   padding-left: env(safe-area-inset-left);
 }
