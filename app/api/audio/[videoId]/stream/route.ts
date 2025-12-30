@@ -24,7 +24,7 @@ async function getFreshAudioUrl(videoId: string): Promise<string | null> {
 
   try {
     const { stdout, stderr } = await execAsync(
-      `${ytdlpPath} --cookies "${cookiesPath}" -f 'bestaudio[ext=m4a]/bestaudio/93/best' --get-url "https://youtube.com/watch?v=${videoId}"`,
+      `${ytdlpPath} --cookies "${cookiesPath}" -f '140/bestaudio[ext=m4a]/bestaudio' --extractor-args "youtube:player_client=web" --get-url "https://youtube.com/watch?v=${videoId}"`,
       { timeout: 30000, maxBuffer: 1024 * 1024 }
     )
 

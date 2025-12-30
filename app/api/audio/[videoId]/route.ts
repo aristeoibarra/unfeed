@@ -85,7 +85,7 @@ export async function GET(
     const ytdlpPath = process.env.YT_DLP_PATH || "/home/ec2-user/.local/bin/yt-dlp"
 
     const { stdout, stderr } = await execAsync(
-      `${ytdlpPath} --cookies "${cookiesPath}" -f 'bestaudio[ext=m4a]/bestaudio/93/best' --get-url "https://youtube.com/watch?v=${videoId}"`,
+      `${ytdlpPath} --cookies "${cookiesPath}" -f '140/bestaudio[ext=m4a]/bestaudio' --extractor-args "youtube:player_client=web" --get-url "https://youtube.com/watch?v=${videoId}"`,
       {
         timeout: 30000, // 30 second timeout
         maxBuffer: 1024 * 1024, // 1MB buffer
