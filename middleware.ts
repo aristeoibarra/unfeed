@@ -11,7 +11,8 @@ const COOKIE_NAME = "auth_token"
 const PUBLIC_ROUTES = [
   "/login",
   "/api/auth/login",
-  "/api/auth/logout"
+  "/api/auth/logout",
+  "/api/audio", // Audio streaming endpoints - element doesn't send cookies properly
 ]
 
 /**
