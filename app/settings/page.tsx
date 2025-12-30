@@ -8,6 +8,7 @@ import { CategoryManager } from "@/components/CategoryManager"
 import { SyncStatus } from "@/components/SyncStatus"
 import { SyncIntervalSettings } from "@/components/SyncIntervalSettings"
 import { LanguageSettings } from "@/components/LanguageSettings"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import {
   Settings,
   FolderOpen,
@@ -16,7 +17,8 @@ import {
   Rss,
   Clock,
   Database,
-  AlertTriangle
+  AlertTriangle,
+  Palette
 } from "lucide-react"
 
 export const metadata = {
@@ -102,6 +104,22 @@ export default async function SettingsPage() {
             initialLanguage={settings.preferredLanguage}
             initialAutoShowSubtitles={settings.autoShowSubtitles}
           />
+        </section>
+
+        {/* Appearance Settings */}
+        <section className="p-4 bg-card rounded-xl border border-border">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-chart-4/10 rounded-lg">
+              <Palette className="h-5 w-5 text-chart-4" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Appearance</h2>
+              <p className="text-sm text-muted-foreground">
+                Customize the look and feel
+              </p>
+            </div>
+          </div>
+          <ThemeToggle />
         </section>
 
         {/* Feed Settings */}

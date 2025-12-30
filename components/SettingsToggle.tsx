@@ -41,12 +41,12 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
   }
 
   return (
-    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-muted rounded-lg">
-          <ThumbsDown className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="p-2 bg-destructive/10 rounded-lg shrink-0">
+          <ThumbsDown className="h-5 w-5 text-destructive" aria-hidden="true" />
         </div>
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="hide-disliked"
             className="font-medium cursor-pointer"
@@ -58,7 +58,7 @@ export function SettingsToggle({ initialHideDisliked }: SettingsToggleProps) {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0 ml-3">
         {loading && (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
         )}

@@ -80,9 +80,9 @@ export function LanguageSettings({
   return (
     <div className="space-y-4">
       {/* Language selector */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
+          <div className="p-2 bg-primary/10 rounded-lg shrink-0">
             <Languages className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
@@ -92,7 +92,7 @@ export function LanguageSettings({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-11 sm:ml-0">
           {loadingLanguage && (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
           )}
@@ -121,11 +121,11 @@ export function LanguageSettings({
 
       {/* Subtitles toggle */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-success/10 rounded-lg">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 bg-success/10 rounded-lg shrink-0">
             <Captions className="h-5 w-5 text-success" aria-hidden="true" />
           </div>
-          <div>
+          <div className="min-w-0">
             <label htmlFor="auto-subtitles" className="font-medium cursor-pointer">
               Show subtitles automatically
             </label>
@@ -134,7 +134,7 @@ export function LanguageSettings({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 ml-3">
           {loadingSubtitles && (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
           )}

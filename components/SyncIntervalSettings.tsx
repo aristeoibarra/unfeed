@@ -51,9 +51,9 @@ export function SyncIntervalSettings({
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-warning/10 rounded-lg">
+        <div className="p-2 bg-warning/10 rounded-lg shrink-0">
           <Clock className="h-5 w-5 text-warning" aria-hidden="true" />
         </div>
         <div>
@@ -63,7 +63,7 @@ export function SyncIntervalSettings({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-11 sm:ml-0">
         {loading && (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
         )}
